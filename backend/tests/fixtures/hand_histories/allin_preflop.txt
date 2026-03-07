@@ -1,0 +1,35 @@
+PokerStars Hand #220001000004: Hold'em No Limit ($0.01/$0.02 USD) - 2024/01/07 15:33:00 ET
+Table 'Altair II' 6-max Seat #1 is the button
+Seat 1: BTNPlayer ($2.00 in chips)
+Seat 2: SBPlayer ($2.00 in chips)
+Seat 3: BBPlayer ($2.00 in chips)
+Seat 4: UTGPlayer ($2.00 in chips)
+Seat 5: Hero ($2.00 in chips)
+Seat 6: COPlayer ($2.00 in chips)
+SBPlayer: posts small blind $0.01
+BBPlayer: posts big blind $0.02
+*** HOLE CARDS ***
+Dealt to Hero [Ah Ad]
+UTGPlayer: folds
+Hero: raises $0.06 to $0.08
+COPlayer: folds
+BTNPlayer: folds
+SBPlayer: folds
+BBPlayer: raises $1.98 to $2.00 and is all-in
+Hero: calls $1.92 and is all-in
+*** FLOP *** [2c 7d Ts]
+*** TURN *** [2c 7d Ts] [3h]
+*** RIVER *** [2c 7d Ts 3h] [9c]
+*** SHOW DOWN ***
+BBPlayer: shows [Kh Kd] (a pair of Kings)
+Hero: shows [Ah Ad] (a pair of Aces)
+Hero collected $4.00 from pot
+*** SUMMARY ***
+Total pot $4.01 | Rake $0.01
+Board [2c 7d Ts 3h 9c]
+Seat 1: BTNPlayer (button) folded before Flop (didn't bet)
+Seat 2: SBPlayer (small blind) folded before Flop
+Seat 3: BBPlayer (big blind) showed [Kh Kd] and lost with a pair of Kings
+Seat 4: UTGPlayer folded before Flop (didn't bet)
+Seat 5: Hero showed [Ah Ad] and won ($4.00) with a pair of Aces
+Seat 6: COPlayer folded before Flop (didn't bet)

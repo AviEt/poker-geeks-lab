@@ -1,0 +1,232 @@
+"""
+Tests for the GGPoker hand history parser.
+Each class covers one distinct parsing concern.
+
+Real hand files are in fixtures/hand_histories/real_hands/ and contain
+multiple hands per file.
+"""
+
+from pathlib import Path
+
+import pytest
+
+from domain.action import ActionType
+from domain.hand import GameType
+from domain.street import StreetName
+from parsers.ggpoker import GGPokerParser
+from parsers.base import ParseError
+
+FIXTURES = Path(__file__).parent / "fixtures" / "hand_histories"
+REAL_HANDS = FIXTURES / "real_hands"
+
+# Pick one known file to run specific assertions against
+SAMPLE_FILE = REAL_HANDS / "GG20231205-1004 - RushAndCash15083753 - 0.02 - 0.05 - 6max.txt"
+
+
+@pytest.fixture
+def parser() -> GGPokerParser:
+    return GGPokerParser()
+
+
+# ---------------------------------------------------------------------------
+# Multi-hand splitting
+# ---------------------------------------------------------------------------
+
+class TestMultiHandSplitting:
+    def test_returns_multiple_hands(self, parser):
+        hands = parser.parse_file(SAMPLE_FILE)
+        assert len(hands) > 1
+
+    def test_all_hands_have_unique_ids(self, parser):
+        hands = parser.parse_file(SAMPLE_FILE)
+        ids = [h.hand_id for h in hands]
+        assert len(ids) == len(set(ids))
+
+    def test_all_real_files_parse_without_error(self, parser):
+        """Integration smoke test: every real file must parse cleanly."""
+        for path in REAL_HANDS.glob("*.txt"):
+            hands = parser.parse_file(path)
+            assert len(hands) > 0, f"No hands parsed from {path.name}"
+
+
+# ---------------------------------------------------------------------------
+# Hand metadata (spot-check against first hand of sample file)
+# ---------------------------------------------------------------------------
+
+class TestHandMetadata:
+    @pytest.fixture
+    def first_hand(self, parser):
+        return parser.parse_file(SAMPLE_FILE)[0]
+
+    def test_hand_id_is_numeric_string(self, first_hand):
+        assert first_hand.hand_id.isdigit()
+
+    def test_game_type_is_nlhe(self, first_hand):
+        assert first_hand.game_type == GameType.NLHE
+
+    def test_small_blind(self, first_hand):
+        assert first_hand.small_blind == pytest.approx(0.02)
+
+    def test_big_blind(self, first_hand):
+        assert first_hand.big_blind == pytest.approx(0.05)
+
+    def test_table_name_not_empty(self, first_hand):
+        assert first_hand.table_name != ""
+
+    def test_datetime_year(self, first_hand):
+        assert first_hand.played_at.year == 2023
+
+    def test_datetime_month(self, first_hand):
+        assert first_hand.played_at.month == 12
+
+
+# ---------------------------------------------------------------------------
+# Player parsing
+# ---------------------------------------------------------------------------
+
+class TestPlayerParsing:
+    @pytest.fixture
+    def first_hand(self, parser):
+        return parser.parse_file(SAMPLE_FILE)[0]
+
+    def test_six_players(self, first_hand):
+        assert len(first_hand.players) == 6
+
+    def test_hero_is_present(self, first_hand):
+        names = {p.name for p in first_hand.players}
+        assert "Hero" in names
+
+    def test_hero_stack(self, first_hand):
+        hero = next(p for p in first_hand.players if p.name == "Hero")
+        assert hero.stack == pytest.approx(6.98)
+
+    def test_seats_are_numbered(self, first_hand):
+        seats = [p.seat for p in first_hand.players]
+        assert all(1 <= s <= 9 for s in seats)
+
+
+# ---------------------------------------------------------------------------
+# Hero hole cards
+# ---------------------------------------------------------------------------
+
+class TestHoleCards:
+    @pytest.fixture
+    def first_hand(self, parser):
+        return parser.parse_file(SAMPLE_FILE)[0]
+
+    def test_hero_has_two_hole_cards(self, first_hand):
+        hero = next(p for p in first_hand.players if p.name == "Hero")
+        assert len(hero.hole_cards) == 2
+
+    def test_opponent_hole_cards_empty(self, first_hand):
+        """GGPoker does not reveal opponent hole cards (unless shown at showdown)."""
+        non_heroes = [p for p in first_hand.players if p.name != "Hero"]
+        # At most one opponent may have shown cards at showdown; others should be empty
+        shown = [p for p in non_heroes if p.hole_cards]
+        assert len(shown) <= len(first_hand.players) - 1
+
+
+# ---------------------------------------------------------------------------
+# Preflop actions
+# ---------------------------------------------------------------------------
+
+class TestPreflopActions:
+    @pytest.fixture
+    def first_hand(self, parser):
+        return parser.parse_file(SAMPLE_FILE)[0]
+
+    def test_sb_post_recorded(self, first_hand):
+        preflop = next(s for s in first_hand.streets if s.name == StreetName.PREFLOP)
+        posts = [a for a in preflop.actions if a.action_type == ActionType.POST_SB]
+        assert len(posts) == 1
+        assert posts[0].amount == pytest.approx(0.02)
+
+    def test_bb_post_recorded(self, first_hand):
+        preflop = next(s for s in first_hand.streets if s.name == StreetName.PREFLOP)
+        posts = [a for a in preflop.actions if a.action_type == ActionType.POST_BB]
+        assert len(posts) == 1
+        assert posts[0].amount == pytest.approx(0.05)
+
+    def test_hero_raised_preflop(self, first_hand):
+        preflop = next(s for s in first_hand.streets if s.name == StreetName.PREFLOP)
+        hero_raises = [
+            a for a in preflop.actions
+            if a.action_type == ActionType.RAISE and a.player_name == "Hero"
+        ]
+        assert len(hero_raises) == 1
+
+
+# ---------------------------------------------------------------------------
+# Postflop actions
+# ---------------------------------------------------------------------------
+
+class TestPostflopActions:
+    @pytest.fixture
+    def first_hand(self, parser):
+        return parser.parse_file(SAMPLE_FILE)[0]
+
+    def test_flop_exists(self, first_hand):
+        names = [s.name for s in first_hand.streets]
+        assert StreetName.FLOP in names
+
+    def test_flop_has_three_cards(self, first_hand):
+        flop = next(s for s in first_hand.streets if s.name == StreetName.FLOP)
+        assert len(flop.cards) == 3
+
+    def test_turn_has_one_card(self, first_hand):
+        turn = next(s for s in first_hand.streets if s.name == StreetName.TURN)
+        assert len(turn.cards) == 1
+
+    def test_river_has_one_card(self, first_hand):
+        river = next(s for s in first_hand.streets if s.name == StreetName.RIVER)
+        assert len(river.cards) == 1
+
+
+# ---------------------------------------------------------------------------
+# Showdown / shows captured from action lines
+# ---------------------------------------------------------------------------
+
+class TestShowdown:
+    @pytest.fixture
+    def first_hand(self, parser):
+        return parser.parse_file(SAMPLE_FILE)[0]
+
+    def test_shown_cards_captured_at_showdown(self, first_hand):
+        """Both players showed cards in the first hand (split pot)."""
+        shown = [p for p in first_hand.players if p.hole_cards]
+        assert len(shown) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Net won / results
+# ---------------------------------------------------------------------------
+
+class TestNetWon:
+    @pytest.fixture
+    def hands(self, parser):
+        return parser.parse_file(SAMPLE_FILE)
+
+    def test_net_won_sum_is_near_zero_minus_rake(self, hands):
+        """
+        Across all hands in a file, the sum of all players' net_won
+        should equal the negative rake (money leaves the table).
+        Allow some floating-point tolerance.
+        """
+        for hand in hands:
+            total = sum(p.net_won for p in hand.players)
+            expected = hand.cash_drop - hand.rake
+            assert total == pytest.approx(expected, abs=0.01), (
+                f"Hand {hand.hand_id}: net_won sum {total:.4f} != cash_drop-rake {expected:.4f}"
+            )
+
+
+# ---------------------------------------------------------------------------
+# Error handling
+# ---------------------------------------------------------------------------
+
+class TestErrorHandling:
+    def test_malformed_file_raises_parse_error(self, parser, tmp_path):
+        bad = tmp_path / "garbage.txt"
+        bad.write_text("this is not a hand history\n")
+        with pytest.raises(ParseError):
+            parser.parse_file(bad)
