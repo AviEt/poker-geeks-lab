@@ -12,7 +12,7 @@ from pathlib import Path
 
 from domain.action import Action, ActionType
 from domain.hand import Hand, GameType
-from domain.player import Player, Position
+from domain.player import Player, Position, assign_positions
 from domain.street import Street, StreetName
 from parsers.base import BaseParser, ParseError
 
@@ -28,7 +28,7 @@ _HEADER = re.compile(
 _BLINDS = re.compile(
     r"\(\$(?P<sb>[\d.]+)/\$(?P<bb>[\d.]+) (?P<currency_code>\w+)\)"
 )
-_TABLE = re.compile(r"Table '(?P<name>[^']+)'")
+_TABLE = re.compile(r"Table '(?P<name>[^']+)'.*Seat #(?P<btn>\d+) is the button")
 _SEAT = re.compile(r"Seat (?P<seat>\d+): (?P<name>.+?) \(\$(?P<stack>[\d.]+) in chips\)")
 _POST_SB = re.compile(r"(?P<name>.+?): posts small blind \$(?P<amount>[\d.]+)")
 _POST_BB = re.compile(r"(?P<name>.+?): posts big blind \$(?P<amount>[\d.]+)")
@@ -100,12 +100,15 @@ class PokerStarsParser(BaseParser):
 
         table_match = _TABLE.match(lines[1]) if len(lines) > 1 else None
         table_name = table_match.group("name") if table_match else "Unknown"
+        button_seat = int(table_match.group("btn")) if table_match else None
 
         # --- Split into sections ---
         sections = self._split_sections(lines)
 
         # --- Players ---
         players = self._parse_seats(sections.get("seats", []))
+        if button_seat is not None:
+            assign_positions(players, button_seat)
         player_map: dict[str, Player] = {p.name: p for p in players}
 
         # --- Streets ---

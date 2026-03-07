@@ -175,3 +175,77 @@ class TestPlayerHands:
         data = client.get("/Hero/hands").json()
         assert data["hands"] == []
         assert data["total"] == 0
+
+    def test_hands_have_extended_fields(self, populated_client):
+        data = populated_client.get("/Hero/hands").json()
+        extended = {"hero_position", "hero_hole_cards", "flop", "turn", "river", "net_won"}
+        for hand in data["hands"]:
+            assert extended <= hand.keys()
+
+    def test_hero_position_present(self, populated_client):
+        data = populated_client.get("/Hero/hands").json()
+        positions_seen = [h["hero_position"] for h in data["hands"] if h["hero_position"]]
+        assert len(positions_seen) > 0
+
+    def test_hero_hole_cards_present_for_hero(self, populated_client):
+        data = populated_client.get("/Hero/hands").json()
+        cards_seen = [h["hero_hole_cards"] for h in data["hands"] if h["hero_hole_cards"]]
+        assert len(cards_seen) > 0
+
+    def test_board_cards_present_for_postflop_hands(self, populated_client):
+        data = populated_client.get("/Hero/hands?page_size=500").json()
+        flops = [h["flop"] for h in data["hands"] if h["flop"]]
+        assert len(flops) > 0
+
+
+# ---------------------------------------------------------------------------
+# GET /{player}/hands/{hand_id}
+# ---------------------------------------------------------------------------
+
+class TestHandDetail:
+    def test_returns_200(self, populated_client):
+        hands = populated_client.get("/Hero/hands").json()["hands"]
+        hid = hands[0]["hand_id"]
+        resp = populated_client.get(f"/Hero/hands/{hid}")
+        assert resp.status_code == 200
+
+    def test_has_required_fields(self, populated_client):
+        hands = populated_client.get("/Hero/hands").json()["hands"]
+        hid = hands[0]["hand_id"]
+        data = populated_client.get(f"/Hero/hands/{hid}").json()
+        required = {"hand_id", "played_at", "table_name", "game_type", "players", "streets", "pot", "rake"}
+        assert required <= data.keys()
+
+    def test_streets_contain_actions(self, populated_client):
+        hands = populated_client.get("/Hero/hands").json()["hands"]
+        hid = hands[0]["hand_id"]
+        data = populated_client.get(f"/Hero/hands/{hid}").json()
+        assert len(data["streets"]) >= 1
+        preflop = data["streets"][0]
+        assert preflop["name"] == "preflop"
+        assert len(preflop["actions"]) > 0
+
+    def test_actions_have_required_fields(self, populated_client):
+        hands = populated_client.get("/Hero/hands").json()["hands"]
+        hid = hands[0]["hand_id"]
+        data = populated_client.get(f"/Hero/hands/{hid}").json()
+        for street in data["streets"]:
+            for action in street["actions"]:
+                assert {"player", "action", "amount", "is_all_in"} <= action.keys()
+
+    def test_players_have_required_fields(self, populated_client):
+        hands = populated_client.get("/Hero/hands").json()["hands"]
+        hid = hands[0]["hand_id"]
+        data = populated_client.get(f"/Hero/hands/{hid}").json()
+        for p in data["players"]:
+            assert {"name", "seat", "stack", "position", "hole_cards", "net_won"} <= p.keys()
+
+    def test_404_for_missing_hand(self, populated_client):
+        resp = populated_client.get("/Hero/hands/99999999")
+        assert resp.status_code == 404
+
+    def test_404_for_wrong_player(self, populated_client):
+        hands = populated_client.get("/Hero/hands").json()["hands"]
+        hid = hands[0]["hand_id"]
+        resp = populated_client.get(f"/NoSuchPlayer/hands/{hid}")
+        assert resp.status_code == 404

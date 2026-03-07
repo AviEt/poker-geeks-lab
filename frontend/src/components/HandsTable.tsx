@@ -6,9 +6,10 @@ const PAGE_SIZE = 20
 
 interface Props {
   player: string
+  onSelectHand?: (handId: string) => void
 }
 
-export function HandsTable({ player }: Props) {
+export function HandsTable({ player, onSelectHand }: Props) {
   const [data, setData] = useState<HandsResponse | null>(null)
   const [page, setPage] = useState(1)
 
@@ -30,21 +31,33 @@ export function HandsTable({ player }: Props) {
         <table>
           <thead>
             <tr>
+              <th>Position</th>
               <th>Hand ID</th>
-              <th>Date</th>
-              <th>Table</th>
-              <th>Game</th>
+              <th>Hole Cards</th>
+              <th>Flop</th>
+              <th>Turn</th>
+              <th>River</th>
+              <th>Net Won</th>
               <th>Stakes</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody>
             {data.hands.map(h => (
-              <tr key={h.hand_id}>
+              <tr
+                key={h.hand_id}
+                onClick={() => onSelectHand?.(h.hand_id)}
+                style={{ cursor: onSelectHand ? 'pointer' : undefined }}
+              >
+                <td>{h.hero_position ?? '—'}</td>
                 <td>{h.hand_id}</td>
-                <td>{h.played_at}</td>
-                <td>{h.table_name}</td>
-                <td>{h.game_type}</td>
+                <td>{h.hero_hole_cards ?? '—'}</td>
+                <td>{h.flop ?? '—'}</td>
+                <td>{h.turn ?? '—'}</td>
+                <td>{h.river ?? '—'}</td>
+                <td>${h.net_won.toFixed(2)}</td>
                 <td>${h.small_blind}/${h.big_blind}</td>
+                <td>{h.played_at}</td>
               </tr>
             ))}
           </tbody>

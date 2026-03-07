@@ -3,11 +3,13 @@ import './App.css'
 import { ImportPanel } from './components/ImportPanel'
 import { StatsPanel } from './components/StatsPanel'
 import { HandsTable } from './components/HandsTable'
+import { HandDetail } from './components/HandDetail'
 
 const PLAYER = 'Hero'
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0)
+  const [selectedHandId, setSelectedHandId] = useState<string | null>(null)
 
   return (
     <div>
@@ -25,7 +27,15 @@ function App() {
 
       <section>
         <h2>Hands — {PLAYER}</h2>
-        <HandsTable player={PLAYER} />
+        {selectedHandId ? (
+          <HandDetail
+            player={PLAYER}
+            handId={selectedHandId}
+            onClose={() => setSelectedHandId(null)}
+          />
+        ) : (
+          <HandsTable player={PLAYER} onSelectHand={setSelectedHandId} />
+        )}
       </section>
     </div>
   )

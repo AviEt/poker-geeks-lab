@@ -24,6 +24,12 @@ const HAND: client.HandSummary = {
   small_blind: 0.02,
   big_blind: 0.05,
   hero_name: 'Hero',
+  hero_position: 'BTN',
+  hero_hole_cards: 'As Kh',
+  flop: 'Ts 9d 2c',
+  turn: '5h',
+  river: 'Jc',
+  net_won: 0.15,
 }
 
 describe('HandsTable', () => {
@@ -78,6 +84,28 @@ describe('HandsTable', () => {
     await user.click(screen.getByRole('button', { name: /next/i }))
 
     await waitFor(() => expect(mockFetchHands).toHaveBeenCalledWith('Hero', 2, 20))
+  })
+
+  it('renders position, hole cards, and board columns', async () => {
+    mockFetchHands.mockResolvedValue(makeResponse([HAND], 1))
+    render(<HandsTable player="Hero" />)
+    await waitFor(() => {
+      expect(screen.getByText('BTN')).toBeDefined()
+      expect(screen.getByText('As Kh')).toBeDefined()
+      expect(screen.getByText('Ts 9d 2c')).toBeDefined()
+      expect(screen.getByText('5h')).toBeDefined()
+      expect(screen.getByText('Jc')).toBeDefined()
+    })
+  })
+
+  it('calls onSelectHand when a row is clicked', async () => {
+    mockFetchHands.mockResolvedValue(makeResponse([HAND], 1))
+    const onSelect = vi.fn()
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" onSelectHand={onSelect} />)
+    await waitFor(() => screen.getByText('12345'))
+    await user.click(screen.getByText('12345'))
+    expect(onSelect).toHaveBeenCalledWith('12345')
   })
 
   it('clicking Prev decrements page and refetches', async () => {
