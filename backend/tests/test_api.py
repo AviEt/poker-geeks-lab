@@ -197,6 +197,59 @@ class TestPlayerHands:
         flops = [h["flop"] for h in data["hands"] if h["flop"]]
         assert len(flops) > 0
 
+    def test_hands_include_bb_per_100(self, populated_client):
+        data = populated_client.get("/Hero/hands?page_size=500").json()
+        for hand in data["hands"]:
+            assert "bb_per_100" in hand
+            expected = round(hand["net_won"] / hand["big_blind"] * 100, 2)
+            assert hand["bb_per_100"] == pytest.approx(expected, abs=0.01)
+
+    def test_hands_include_bb_per_100_adj(self, populated_client):
+        data = populated_client.get("/Hero/hands").json()
+        for hand in data["hands"]:
+            assert "bb_per_100_adj" in hand
+
+    def test_hands_include_pot_won(self, populated_client):
+        data = populated_client.get("/Hero/hands?page_size=500").json()
+        for hand in data["hands"]:
+            assert "pot_won" in hand
+            assert hand["pot_won"] >= 0
+
+    def test_pot_won_equals_pot_won_after_rake_plus_rake(self, populated_client):
+        data = populated_client.get("/Hero/hands?page_size=500").json()
+        winners = [h for h in data["hands"] if h["pot_won_after_rake_usd"] > 0]
+        assert len(winners) > 0
+        for hand in winners:
+            assert hand["pot_won"] == pytest.approx(
+                hand["pot_won_after_rake_usd"] + hand["rake_usd"], abs=0.001
+            )
+
+    def test_hands_include_rake_usd(self, populated_client):
+        data = populated_client.get("/Hero/hands").json()
+        for hand in data["hands"]:
+            assert "rake_usd" in hand
+            assert hand["rake_usd"] >= 0
+
+    def test_hands_include_rake_bb(self, populated_client):
+        data = populated_client.get("/Hero/hands?page_size=500").json()
+        for hand in data["hands"]:
+            assert "rake_bb" in hand
+            expected = round(hand["rake_usd"] / hand["big_blind"], 4)
+            assert hand["rake_bb"] == pytest.approx(expected, abs=0.0001)
+
+    def test_hands_include_pot_won_after_rake_usd(self, populated_client):
+        data = populated_client.get("/Hero/hands").json()
+        for hand in data["hands"]:
+            assert "pot_won_after_rake_usd" in hand
+            assert hand["pot_won_after_rake_usd"] >= 0
+
+    def test_hands_include_pot_won_after_rake_bb100(self, populated_client):
+        data = populated_client.get("/Hero/hands?page_size=500").json()
+        for hand in data["hands"]:
+            assert "pot_won_after_rake_bb100" in hand
+            expected = round(hand["pot_won_after_rake_usd"] / hand["big_blind"] * 100, 2)
+            assert hand["pot_won_after_rake_bb100"] == pytest.approx(expected, abs=0.01)
+
 
 # ---------------------------------------------------------------------------
 # GET /{player}/hands/{hand_id}

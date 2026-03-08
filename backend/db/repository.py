@@ -55,6 +55,7 @@ class HandRepository:
                 position=player.position.value if player.position else None,
                 hole_cards=" ".join(player.hole_cards) if player.hole_cards else None,
                 net_won=player.net_won,
+                pot_won_after_rake=player.pot_won_after_rake,
             ))
 
         for street in hand.streets:

@@ -67,6 +67,7 @@ def player_hands(
             "turn": board.get("turn"),
             "river": board.get("river"),
             "net_won": hero_player.net_won if hero_player else 0.0,
+            **_pot_stats(hero_player, row.rake, row.big_blind),
         })
 
     return {"player": player, "total": total, "page": page, "page_size": page_size, "hands": hands}
@@ -135,6 +136,23 @@ def hand_detail(
         "hero_name": row.hero_name,
         "players": players,
         "streets": streets,
+    }
+
+
+def _pot_stats(hero_player, rake: float, big_blind: float) -> dict:
+    net_won = hero_player.net_won if hero_player else 0.0
+    pot_won_after_rake = hero_player.pot_won_after_rake if hero_player else 0.0
+    hero_won = pot_won_after_rake > 0
+    hero_rake = rake if hero_won else 0.0
+    pot_won = round(pot_won_after_rake + hero_rake, 4)
+    return {
+        "bb_per_100": round(net_won / big_blind * 100, 2),
+        "bb_per_100_adj": round(net_won / big_blind * 100, 2),
+        "pot_won": pot_won,
+        "rake_usd": round(hero_rake, 4),
+        "rake_bb": round(hero_rake / big_blind, 4),
+        "pot_won_after_rake_usd": round(pot_won_after_rake, 4),
+        "pot_won_after_rake_bb100": round(pot_won_after_rake / big_blind * 100, 2),
     }
 
 

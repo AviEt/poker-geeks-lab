@@ -215,6 +215,36 @@ class TestHandIdStability:
 
 
 # ---------------------------------------------------------------------------
+# Pot won tracking
+# ---------------------------------------------------------------------------
+
+class TestPotWon:
+    def test_winner_pot_won_after_rake_equals_collected(self, parser):
+        # Hero collects $0.05 from pot; uncalled $0.04 returned separately
+        hand = parse_one(parser, FIXTURES / "basic_raise_and_win.txt")
+        hero = next(p for p in hand.players if p.name == "Hero")
+        assert hero.pot_won_after_rake == pytest.approx(0.05)
+
+    def test_uncalled_bet_not_included_in_pot_won(self, parser):
+        # pot_won_after_rake must NOT include the $0.04 uncalled bet returned to Hero
+        hand = parse_one(parser, FIXTURES / "basic_raise_and_win.txt")
+        hero = next(p for p in hand.players if p.name == "Hero")
+        assert hero.pot_won_after_rake == pytest.approx(0.05)   # not 0.09
+        assert hero.pot_won_after_rake != pytest.approx(0.09)
+
+    def test_loser_pot_won_after_rake_is_zero(self, parser):
+        hand = parse_one(parser, FIXTURES / "basic_raise_and_win.txt")
+        bb_player = next(p for p in hand.players if p.name == "BBPlayer")
+        assert bb_player.pot_won_after_rake == pytest.approx(0.0)
+
+    def test_pot_won_after_rake_plus_rake_equals_total_pot(self, parser):
+        # In a single-winner hand: collected + rake == total pot
+        hand = parse_one(parser, FIXTURES / "basic_raise_and_win.txt")
+        hero = next(p for p in hand.players if p.name == "Hero")
+        assert hero.pot_won_after_rake + hand.rake == pytest.approx(hand.pot)
+
+
+# ---------------------------------------------------------------------------
 # Error handling
 # ---------------------------------------------------------------------------
 

@@ -360,8 +360,11 @@ class PokerStarsParser(BaseParser):
         for m in _COLLECTED.finditer(text):
             name = m.group("name")
             if name in player_map:
-                player_map[name].net_won += float(m.group("amount"))
-        # Uncalled bets are returned to the raiser — credit them back
+                amount = float(m.group("amount"))
+                player_map[name].net_won += amount
+                player_map[name].pot_won_after_rake += amount
+        # Uncalled bets are returned to the raiser — credit net_won but not pot_won_after_rake
+        # (the returned amount was never part of the contested pot)
         for m in _UNCALLED.finditer(text):
             name = m.group("name")
             if name in player_map:

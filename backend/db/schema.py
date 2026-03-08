@@ -58,6 +58,7 @@ class PlayerRow(Base):
     position = Column(String, nullable=True)
     hole_cards = Column(String, nullable=True)              # space-separated, e.g. "As Kh"
     net_won = Column(Float, nullable=False, default=0.0)
+    pot_won_after_rake = Column(Float, nullable=False, default=0.0)
 
     hand = relationship("HandRow", back_populates="players")
 

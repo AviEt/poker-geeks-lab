@@ -29,6 +29,13 @@ export interface HandSummary {
   turn: string | null
   river: string | null
   net_won: number
+  bb_per_100: number
+  bb_per_100_adj: number
+  pot_won: number
+  rake_usd: number
+  rake_bb: number
+  pot_won_after_rake_usd: number
+  pot_won_after_rake_bb100: number
 }
 
 export interface HandsResponse {

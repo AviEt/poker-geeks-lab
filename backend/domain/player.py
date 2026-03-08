@@ -63,3 +63,4 @@ class Player:
     position: Position = Position.UNKNOWN
     hole_cards: list[str] = field(default_factory=list)
     net_won: float = 0.0                 # amount won/lost this hand (in chips)
+    pot_won_after_rake: float = 0.0      # sum of "collected" lines; pot hero won after rake deduction

@@ -368,7 +368,10 @@ class GGPokerParser(BaseParser):
         for m in _COLLECTED.finditer(text):
             name = m.group("name")
             if name in player_map:
-                player_map[name].net_won += float(m.group("amount"))
+                amount = float(m.group("amount"))
+                player_map[name].net_won += amount
+                player_map[name].pot_won_after_rake += amount
+        # Uncalled bets are returned to the raiser — credit net_won but not pot_won_after_rake
         for m in _UNCALLED.finditer(text):
             name = m.group("name")
             if name in player_map:

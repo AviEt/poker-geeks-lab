@@ -30,6 +30,13 @@ const HAND: client.HandSummary = {
   turn: '5h',
   river: 'Jc',
   net_won: 0.15,
+  bb_per_100: 300,
+  bb_per_100_adj: 300,
+  pot_won: 0.30,
+  rake_usd: 0.02,
+  rake_bb: 0.4,
+  pot_won_after_rake_usd: 0.28,
+  pot_won_after_rake_bb100: 560,
 }
 
 describe('HandsTable', () => {
@@ -106,6 +113,29 @@ describe('HandsTable', () => {
     await waitFor(() => screen.getByText('12345'))
     await user.click(screen.getByText('12345'))
     expect(onSelect).toHaveBeenCalledWith('12345')
+  })
+
+  it('renders new column headers', async () => {
+    mockFetchHands.mockResolvedValue(makeResponse([HAND], 1))
+    render(<HandsTable player="Hero" />)
+    await waitFor(() => {
+      expect(screen.getByText('BB/100')).toBeDefined()
+      expect(screen.getByText('BB/100 Adj')).toBeDefined()
+      expect(screen.getByText('Pot Won')).toBeDefined()
+      expect(screen.getByText('Rake')).toBeDefined()
+      expect(screen.getByText('After Rake')).toBeDefined()
+    })
+  })
+
+  it('renders bb_per_100 and pot_won cell values', async () => {
+    mockFetchHands.mockResolvedValue(makeResponse([HAND], 1))
+    render(<HandsTable player="Hero" />)
+    await waitFor(() => {
+      // bb_per_100 and bb_per_100_adj both render 300.00 — use getAllByText
+      expect(screen.getAllByText('300.00').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByText('$0.30')).toBeDefined()    // pot_won
+      expect(screen.getByText('$0.02')).toBeDefined()    // rake_usd
+    })
   })
 
   it('clicking Prev decrements page and refetches', async () => {

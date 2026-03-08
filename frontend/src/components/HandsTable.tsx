@@ -38,6 +38,11 @@ export function HandsTable({ player, onSelectHand }: Props) {
               <th>Turn</th>
               <th>River</th>
               <th>Net Won</th>
+              <th>BB/100</th>
+              <th>BB/100 Adj</th>
+              <th>Pot Won</th>
+              <th>Rake</th>
+              <th>After Rake</th>
               <th>Stakes</th>
               <th>Date</th>
             </tr>
@@ -56,6 +61,11 @@ export function HandsTable({ player, onSelectHand }: Props) {
                 <td>{h.turn ?? '—'}</td>
                 <td>{h.river ?? '—'}</td>
                 <td>${h.net_won.toFixed(2)}</td>
+                <td>{h.bb_per_100.toFixed(2)}</td>
+                <td>{h.bb_per_100_adj.toFixed(2)}</td>
+                <td>${h.pot_won.toFixed(2)}</td>
+                <td>${h.rake_usd.toFixed(2)}</td>
+                <td>${h.pot_won_after_rake_usd.toFixed(2)}</td>
                 <td>${h.small_blind}/${h.big_blind}</td>
                 <td>{h.played_at}</td>
               </tr>
