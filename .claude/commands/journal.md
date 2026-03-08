@@ -1,52 +1,66 @@
-Create a development journal entry for this Claude Code session.
+Create a development journal entry describing this Claude Code session.
 
-Instructions:
+This journal is meant to later be used to teach developers how the project was built step-by-step.
 
-1. Analyze the conversation history of this session.
-2. Extract the most important prompts used by the user.
-3. Summarize Claude's key outputs and architectural decisions.
-4. Identify feedback or edits given to plans.
-5. Identify Claude Code configuration changes such as:
-   - CLAUDE.md changes
-   - agents created
-   - hooks created
-   - settings modifications
-   - new project files related to Claude Code
+Write the entry as a **narrative story of the development session**, not as a technical log.
 
-Then generate a journal entry in markdown format.
+Focus on:
+- the goal of the session
+- the reasoning behind decisions
+- the back-and-forth between the user and Claude
+- the important prompts that drove progress
+- the key design decisions that emerged
 
-Save it to:
+Do NOT document every prompt or every output.
+
+Instead:
+- include only the **most important prompts**
+- explain **why they mattered**
+- describe **how the discussion evolved**
+
+Avoid verbosity and avoid mechanical structure.
+
+Write naturally, like a developer explaining what happened during the session.
+
+The tone should feel like a thoughtful engineering journal entry.
+
+Structure the output roughly like this:
+
+# Session Title
+
+## What I tried to accomplish
+
+## How the session unfolded
+Narrative explanation of the conversation and development process.
+
+## Key prompts that moved things forward
+
+Include only the most important prompts, quoted briefly.
+
+## Important decisions made
+
+Architecture decisions, workflow changes, or Claude Code setup changes
+(agents, rules, hooks, commands, etc).
+
+## Takeaways
+
+Insights about working with Claude Code or designing the system.
+
+## Next direction
+
+What should happen in the next session.
+
+Save the file to:
 
 docs/dev-journal/
 
 File name format:
 
-YYYY-MM-DD-session-summary.md
+YYYY-MM-DD-session-title.md
 
-The journal entry must include:
+If a journal file already exists for that date, add a numeric index:
 
-# Session Summary
+YYYY-MM-DD-2-session-title.md
+YYYY-MM-DD-3-session-title.md
 
-## Context
-Short explanation of the session goal.
-
-## Key Prompts
-Important prompts used during the session.
-
-## Main Outputs
-Important responses and decisions from Claude.
-
-## Plan Feedback
-Edits or corrections the user made.
-
-## Claude Code Configuration Changes
-Rules, agents, hooks, or settings added or modified.
-
-## Code / Architecture Changes
-New modules or design decisions.
-
-## Lessons Learned
-
-## Next Steps
-
-Write it clearly so the entry can later be used to teach developers how to build the project step-by-step.
+Never append to an existing journal file. Each session gets its own file.
