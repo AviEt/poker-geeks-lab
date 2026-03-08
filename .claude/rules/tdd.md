@@ -6,3 +6,7 @@
 4. Implement until all tests pass without breaking existing tests
 
 Never skip this workflow. Never write implementation before tests are approved.
+
+## Bug Fix Rule
+
+When a bug is found and fixed, **always add a regression test** that reproduces the original bug. The test must fail before the fix and pass after it, ensuring the issue never resurfaces.
