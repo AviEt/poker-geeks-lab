@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,8 +11,14 @@ from api.routes.player_route import router as player_router
 from app.stats_cache import warm as warm_stats_cache
 
 
+def _run_migrations() -> None:
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+
+
 @asynccontextmanager
 async def lifespan(application: FastAPI):  # noqa: ARG001
+    _run_migrations()
     engine_fn = app.dependency_overrides.get(get_engine, get_engine)
     warm_stats_cache(engine_fn())
     yield

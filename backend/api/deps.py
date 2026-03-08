@@ -13,11 +13,9 @@ from fastapi import Depends
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session
 
-from db.schema import Base
 
 _DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./poker_geeks_lab.db")
 _engine = create_engine(_DATABASE_URL)
-Base.metadata.create_all(_engine)
 
 
 def get_engine() -> Engine:
