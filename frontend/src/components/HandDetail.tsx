@@ -31,7 +31,6 @@ function BoardCards({ streets }: { streets: HandDetailType['streets'] }) {
       allCards.push({ card: c, revealed: true })
     }
   }
-  // Pad to 5 cards
   while (allCards.length < 5) {
     allCards.push({ card: '', revealed: false })
   }
@@ -138,7 +137,7 @@ function ActionItem({ a, heroName }: { a: HandAction; heroName: string | null })
           <div className="action-item__player">{a.player}</div>
           <div className="action-item__text">{formatAction(a)}</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="action-item__right">
           <span className={`action-item__badge ${badgeClass}`}>
             {a.is_all_in ? 'All-In' : actionBadgeLabel(a.action)}
           </span>
@@ -162,7 +161,7 @@ export function HandDetail({ player, handId, onClose }: Props) {
     })
   }, [player, handId])
 
-  if (!data) return <p>Loading...</p>
+  if (!data) return <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Loading…</p>
 
   const active = data.streets.find(s => s.name === activeStreet)
   const showdownPlayers = data.players.filter(p => p.hole_cards && p.hole_cards.trim().length > 0)
@@ -172,7 +171,7 @@ export function HandDetail({ player, handId, onClose }: Props) {
       {/* Header */}
       <div className="hand-detail__header">
         <h3 className="hand-detail__title">{data.table_name} | #{data.hand_id}</h3>
-        <button className="hand-detail__close" onClick={onClose}>Close</button>
+        <button className="hand-detail__close" onClick={onClose} aria-label="Close">✕</button>
       </div>
       <p className="hand-detail__subtitle">
         ${data.small_blind}/${data.big_blind} &mdash; {data.game_type}

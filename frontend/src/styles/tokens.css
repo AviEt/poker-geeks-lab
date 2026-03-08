@@ -1,0 +1,107 @@
+/*
+ * ============================================================
+ * DESIGN TOKENS — Poker Geeks Lab
+ * ============================================================
+ * Single source of truth for all visual decisions.
+ *
+ * To re-theme: edit the values in @theme {} below.
+ * All component CSS uses var(--color-*) or Tailwind utilities
+ * generated from these tokens — nothing is hard-coded elsewhere.
+ *
+ * Token categories:
+ *  • Colors  (--color-*)
+ *  • Typography (--font-family-*, --font-size-*)
+ *  • Surfaces  (--glass-*, --radius-*)
+ *  • Animation (--duration-*)
+ * ============================================================
+ */
+
+/* ── Geist variable fonts ── */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* ── Tailwind v4 theme — all tokens ── */
+@theme {
+  /* ---- Colors ---- */
+
+  /* App background */
+  --color-bg:             #070d1a;
+  --color-bg-bloom:       rgba(16, 185, 129, 0.04); /* subtle green radial */
+
+  /* Glass surface panels */
+  --color-surface:        rgba(255, 255, 255, 0.04);
+  --color-surface-hover:  rgba(255, 255, 255, 0.07);
+  --color-surface-active: rgba(255, 255, 255, 0.10);
+
+  /* Borders */
+  --color-border:         rgba(255, 255, 255, 0.08);
+  --color-border-strong:  rgba(255, 255, 255, 0.15);
+
+  /* Accent — change this one value to re-theme the whole app */
+  --color-accent:         #10b981;   /* emerald green */
+  --color-accent-dim:     rgba(16, 185, 129, 0.15);
+  --color-accent-text:    #34d399;   /* lighter for text on dark */
+
+  /* Semantic money colors */
+  --color-profit:         #22c55e;
+  --color-profit-dim:     rgba(34, 197, 94, 0.12);
+  --color-loss:           #ef4444;
+  --color-loss-dim:       rgba(239, 68, 68, 0.12);
+
+  /* Text scale */
+  --color-text:           #e2e8f0;
+  --color-text-muted:     #94a3b8;
+  --color-text-subtle:    #475569;
+
+  /* Poker-specific semantic */
+  --color-pot:            #f59e0b;   /* amber for pot display */
+  --color-hero:           #10b981;   /* hero player highlight = accent */
+
+  /* Action badge semantics */
+  --color-action-fold-bg:    rgba(71, 85, 105, 0.4);
+  --color-action-fold-text:  #94a3b8;
+  --color-action-check-bg:   rgba(30, 58, 95, 0.5);
+  --color-action-check-text: #60a5fa;
+  --color-action-call-bg:    rgba(20, 83, 45, 0.5);
+  --color-action-call-text:  #4ade80;
+  --color-action-bet-bg:     rgba(127, 29, 29, 0.4);
+  --color-action-bet-text:   #f87171;
+  --color-action-post-bg:    rgba(120, 53, 15, 0.4);
+  --color-action-post-text:  #fbbf24;
+  --color-action-show-bg:    rgba(76, 29, 149, 0.35);
+  --color-action-show-text:  #a78bfa;
+  --color-action-allin-bg:   rgba(127, 29, 29, 0.7);
+  --color-action-allin-text: #fca5a5;
+
+  /* ---- Typography ---- */
+  --font-family-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-family-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* ---- Surfaces / Shape ---- */
+  --radius-card:   12px;
+  --radius-pill:   9999px;
+  --radius-badge:  6px;
+  --radius-avatar: 50%;
+
+  --blur-glass: 16px;
+  --blur-sticky: 12px;
+
+  /* ---- Sidebar ---- */
+  --sidebar-width: 240px;
+
+  /* ---- Animation ---- */
+  --duration-fast:   120ms;
+  --duration-normal: 200ms;
+  --duration-slow:   350ms;
+}

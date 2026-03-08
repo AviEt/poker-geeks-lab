@@ -23,5 +23,10 @@ poker_geeks_lab/
 │   ├── app/             # import_hands.py, compute_stats.py
 │   ├── api/routes/
 │   └── tests/fixtures/hand_histories/
-└── frontend/src/        # pages/, components/
+└── frontend/
+    ├── src/
+    │   ├── styles/tokens.css    # design tokens (single source of truth)
+    │   ├── components/          # React components (each has a .tsx + .css)
+    │   └── api/client.ts        # API fetch functions
+    └── public/fonts/            # Geist variable font files
 ```

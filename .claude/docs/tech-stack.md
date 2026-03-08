@@ -4,7 +4,7 @@
 |-----------|-------------------------------------|
 | Backend   | Python 3.12, FastAPI                |
 | Database  | PostgreSQL, SQLAlchemy 2, Alembic   |
-| Frontend  | React + Vite (TypeScript)           |
+| Frontend  | React + Vite (TypeScript), Tailwind CSS v4, Geist font |
 | Testing   | pytest (backend), Vitest (frontend) |
 | Packaging | uv (Python), npm (frontend)         |
 

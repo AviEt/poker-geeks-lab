@@ -1,0 +1,129 @@
+/* ── Stats Panel ── */
+
+.stats-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 600px) {
+  .stats-panel {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Individual stat card */
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: border-color var(--duration-normal), background var(--duration-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+/* Subtle top border accent */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-border-strong);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  opacity: 0;
+  transition: opacity var(--duration-normal);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+/* The big number */
+.stat-card__value {
+  font-family: var(--font-family-mono);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card__value--profit {
+  color: var(--color-profit);
+}
+
+.stat-card__value--loss {
+  color: var(--color-loss);
+}
+
+/* Label below the number */
+.stat-card__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Sub-label (e.g., "adjusted" for BB/100 adj) */
+.stat-card__sub {
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  margin-top: 0.1rem;
+}
+
+/* Hands count row above the grid */
+.stats-hands-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.stats-hands-count__num {
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Loading skeleton */
+.stats-loading {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 600px) {
+  .stats-loading {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stats-skeleton {
+  height: 90px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

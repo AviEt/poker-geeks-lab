@@ -1,0 +1,239 @@
+/* ── Hands Table ── */
+
+.hands-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Desktop table ── */
+.hands-table-container {
+  display: none;
+  overflow-x: auto;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+@media (min-width: 640px) {
+  .hands-table-container {
+    display: block;
+  }
+}
+
+.hands-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.hands-table thead th {
+  padding: 0.75rem 0.875rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(var(--blur-sticky));
+  -webkit-backdrop-filter: blur(var(--blur-sticky));
+}
+
+.hands-table tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.hands-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.hands-table tbody tr:hover {
+  background: var(--color-surface-hover);
+}
+
+.hands-table tbody td {
+  padding: 0.65rem 0.875rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mono for card and number columns */
+.hands-table .col-cards,
+.hands-table .col-num {
+  font-family: var(--font-family-mono);
+  font-size: 0.78rem;
+}
+
+.hands-table .col-muted {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.hands-table .col-profit {
+  font-family: var(--font-family-mono);
+  font-weight: 600;
+  color: var(--color-profit);
+}
+
+.hands-table .col-loss {
+  font-family: var(--font-family-mono);
+  font-weight: 600;
+  color: var(--color-loss);
+}
+
+/* Empty state */
+.hands-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.hands-empty__icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Mobile card list ── */
+.hands-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .hands-mobile-list {
+    display: none;
+  }
+}
+
+.hand-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hand-card:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.hand-card__left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.hand-card__cards {
+  font-family: var(--font-family-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.hand-card__meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.hand-card__position-badge {
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.hand-card__date {
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  margin-top: 0.1rem;
+}
+
+.hand-card__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.hand-card__net {
+  font-family: var(--font-family-mono);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.hand-card__net--profit { color: var(--color-profit); }
+.hand-card__net--loss   { color: var(--color-loss); }
+.hand-card__net--neutral { color: var(--color-text-muted); }
+
+.hand-card__position {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Pagination ── */
+.hands-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  min-width: 80px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
