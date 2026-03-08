@@ -93,8 +93,8 @@ describe('HandDetail', () => {
     mockFetchHandDetail.mockResolvedValue(DETAIL)
     render(<HandDetail player="Hero" handId="12345" onClose={() => {}} />)
     await waitFor(() => {
-      expect(screen.getByText('Hero')).toBeDefined()
-      expect(screen.getByText('Villain')).toBeDefined()
+      expect(screen.getAllByText('Hero').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Villain').length).toBeGreaterThan(0)
     })
   })
 
