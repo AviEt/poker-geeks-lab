@@ -35,7 +35,7 @@ Narrative explanation of the conversation and development process.
 
 ## Key prompts that moved things forward
 
-Include only the most important prompts, quoted briefly.
+Include only the most important prompts - Quoted fully.
 
 ## Important decisions made
 
