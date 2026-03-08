@@ -8,6 +8,7 @@ from sqlalchemy import Engine
 
 from api.deps import get_engine
 from app.import_hands import import_hands
+from app.stats_cache import invalidate as invalidate_stats_cache
 
 router = APIRouter()
 
@@ -40,5 +41,8 @@ def import_files(
         all_errors.extend(
             f"{upload.filename}: {e}" for e in result["errors"]
         )
+
+    if total_imported > 0:
+        invalidate_stats_cache(engine)
 
     return {"imported": total_imported, "skipped": total_skipped, "errors": all_errors}

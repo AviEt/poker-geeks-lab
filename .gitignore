@@ -26,3 +26,6 @@ frontend/.vite/
 # IDE
 .vscode/
 .idea/
+
+# App
+poker_geeks_lab.db 

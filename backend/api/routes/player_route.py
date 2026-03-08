@@ -7,8 +7,9 @@ GET /{player}/hands/{hand_id} — full hand detail (streets + actions)
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
-from api.deps import get_session
+from api.deps import get_engine, get_session
 from app.compute_stats import compute_stats
+from app.stats_cache import get as get_cached_stats
 from db.schema import ActionRow, HandRow, PlayerRow, StreetRow
 
 router = APIRouter()
@@ -16,6 +17,9 @@ router = APIRouter()
 
 @router.get("/{player}/stats")
 def player_stats(player: str, session: Session = Depends(get_session)) -> dict:
+    cached = get_cached_stats(player)
+    if cached is not None:
+        return cached
     stats = compute_stats(player, session=session)
     return {
         "player": player,
