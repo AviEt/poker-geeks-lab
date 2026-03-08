@@ -20,8 +20,8 @@ def player_stats(player: str, session: Session = Depends(get_session)) -> dict:
     return {
         "player": player,
         "hands": stats.hands,
-        "vpip": round(stats.vpip.percentage, 1),
-        "pfr": round(stats.pfr.percentage, 1),
+        "vpip": round(stats.vpip.percentage, 4),
+        "pfr": round(stats.pfr.percentage, 4),
         "bb_per_100": round(stats.bb_per_100, 2),
         "bb_per_100_adjusted": round(stats.bb_per_100_adjusted, 2),
     }

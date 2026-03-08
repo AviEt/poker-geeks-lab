@@ -6,6 +6,7 @@
 @.claude/rules/tdd.md
 @.claude/rules/poker-stats.md
 @.claude/rules/design-system.md
+@.claude/rules/e2e-sanity.md
 
 ## Quick Reference
 

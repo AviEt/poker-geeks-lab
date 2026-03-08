@@ -50,6 +50,7 @@ _RIVER = re.compile(r"\*\*\* RIVER \*\*\* \[[^\]]+\] \[(?P<card>[^\]]+)\]")
 _TOTAL_POT = re.compile(r"Total pot \$(?P<pot>[\d.]+)")
 _FEE_FIELD = re.compile(r"\| (?:Rake|Jackpot|Bingo|Fortune|Tax) \$(?P<amount>[\d.]+)")
 _CASH_DROP = re.compile(r"Cash Drop to Pot : total \$(?P<amount>[\d.]+)")
+_CASHOUT_RISK = re.compile(r"(?P<name>.+?): Pays Cashout Risk \(\$(?P<amount>[\d.]+)\)")
 # GGPoker hand boundary: starts a new hand block
 _HAND_START = re.compile(r"^Poker Hand #RC\d+:")
 
@@ -157,11 +158,15 @@ class GGPokerParser(BaseParser):
             + sections.get("river", [])
             + sections.get("showdown", [])
         )
-        self._apply_collected(all_lines, player_map)
+        cashout_risk = self._apply_collected(all_lines, player_map)
         for street in streets:
             self._apply_invested(street, player_map)
 
         is_walk = self._detect_walk(preflop_street, player_map)
+
+        all_in_equity, all_in_pot_bb = self._detect_preflop_allin(
+            preflop_street, player_map, hero_name, big_blind
+        )
 
         return Hand(
             hand_id=hand_id,
@@ -178,6 +183,9 @@ class GGPokerParser(BaseParser):
             currency="USD",
             is_walk=is_walk,
             cash_drop=cash_drop,
+            cashout_risk=cashout_risk,
+            all_in_equity=all_in_equity,
+            all_in_pot_bb=all_in_pot_bb,
         )
 
     # ------------------------------------------------------------------
@@ -249,6 +257,17 @@ class GGPokerParser(BaseParser):
                 hero_name = m.group("name")
                 if hero_name in player_map:
                     player_map[hero_name].hole_cards = m.group("cards").split()
+                continue
+
+            # In GGPoker all-in runouts, players show cards in the preflop
+            # section (before *** FLOP ***). Capture hole cards here so the
+            # equity calculator has all players' cards available.
+            shows_m = _SHOWS.match(line)
+            if shows_m:
+                name_shown = shows_m.group("name")
+                if name_shown in player_map:
+                    player_map[name_shown].hole_cards = shows_m.group("cards").split()
+                actions.append(Action(name_shown, ActionType.SHOWS))
                 continue
 
             action = self._parse_action_line(line)
@@ -364,7 +383,8 @@ class GGPokerParser(BaseParser):
     # Net won
     # ------------------------------------------------------------------
 
-    def _apply_collected(self, text: str, player_map: dict[str, Player]) -> None:
+    def _apply_collected(self, text: str, player_map: dict[str, Player]) -> float:
+        """Apply collected amounts, uncalled bets, and cashout risk. Returns total cashout risk."""
         for m in _COLLECTED.finditer(text):
             name = m.group("name")
             if name in player_map:
@@ -376,6 +396,15 @@ class GGPokerParser(BaseParser):
             name = m.group("name")
             if name in player_map:
                 player_map[name].net_won += float(m.group("amount"))
+        # GGPoker EV Cashout: fee deducted from winnings, must reduce net_won
+        total_cashout_risk = 0.0
+        for m in _CASHOUT_RISK.finditer(text):
+            name = m.group("name")
+            amount = float(m.group("amount"))
+            total_cashout_risk += amount
+            if name in player_map:
+                player_map[name].net_won -= amount
+        return total_cashout_risk
 
     def _apply_invested(self, street: Street, player_map: dict[str, Player]) -> None:
         """Compute each player's total chip investment on this street and deduct it.
@@ -398,6 +427,62 @@ class GGPokerParser(BaseParser):
         for name, amount in invested.items():
             if name in player_map:
                 player_map[name].net_won -= amount
+
+    # ------------------------------------------------------------------
+    # All-in equity detection
+    # ------------------------------------------------------------------
+
+    def _detect_preflop_allin(
+        self,
+        preflop: Street,
+        player_map: dict[str, Player],
+        hero_name: str | None,
+        big_blind: float,
+    ) -> tuple[dict[str, float] | None, float | None]:
+        """
+        Detect a preflop all-in runout and return (equity_dict, all_in_pot_bb).
+
+        all_in_pot_bb = (total_preflop_pot - hero_investment) / big_blind,
+        i.e. the net amount Hero stands to win in BBs (opponent's contribution).
+
+        Returns (None, None) if no all-in runout is found.
+        """
+        # Require Hero specifically to be all-in (not just any opponent)
+        if hero_name is None or not any(
+            a.is_all_in and a.player_name == hero_name for a in preflop.actions
+        ):
+            return None, None
+
+        # All active players must have hole cards (revealed via shows lines)
+        players_with_cards = {
+            name: p.hole_cards
+            for name, p in player_map.items()
+            if p.hole_cards
+        }
+        if len(players_with_cards) < 2:
+            return None, None
+
+        # Compute each player's total preflop investment (mirrors _apply_invested)
+        invested: dict[str, float] = {}
+        skip = {ActionType.WINS, ActionType.SHOWS, ActionType.MUCKS}
+        for action in preflop.actions:
+            if not action.amount or action.action_type in skip:
+                continue
+            if action.action_type == ActionType.RAISE:
+                invested[action.player_name] = action.amount
+            else:
+                invested[action.player_name] = (
+                    invested.get(action.player_name, 0.0) + action.amount
+                )
+
+        total_pot = sum(invested.values())
+        hero_investment = invested.get(hero_name, 0.0) if hero_name else 0.0
+        all_in_pot_bb = (total_pot - hero_investment) / big_blind
+
+        from domain.equity import calculate_equity
+        equity = calculate_equity(players_with_cards)
+
+        return equity, all_in_pot_bb
 
     # ------------------------------------------------------------------
     # Walk detection

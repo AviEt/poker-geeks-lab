@@ -258,6 +258,48 @@ class TestStreetRepository:
 
 
 # ---------------------------------------------------------------------------
+# All-in equity storage and round-trip
+# ---------------------------------------------------------------------------
+
+class TestAllInEquityStorage:
+    def test_save_hand_with_equity_persists_json(self, repo):
+        hand = _make_hand("AE001")
+        hand.all_in_equity = {"Hero": 0.82, "Villain": 0.18}
+        hand.all_in_pot_bb = 120.0
+        repo.save_hand(hand)
+        row = repo.get_hand("AE001")
+        assert row.allin_equity_json is not None
+        assert row.allin_pot_bb == pytest.approx(120.0)
+
+    def test_save_hand_equity_roundtrips_correctly(self, repo):
+        from app.compute_stats import _to_domain_hand
+        hand = _make_hand("AE002")
+        hand.all_in_equity = {"Hero": 0.75, "Villain": 0.25}
+        hand.all_in_pot_bb = 200.0
+        repo.save_hand(hand)
+        row = repo.get_hand("AE002")
+        reconstructed = _to_domain_hand(row)
+        assert reconstructed.all_in_equity == pytest.approx({"Hero": 0.75, "Villain": 0.25})
+        assert reconstructed.all_in_pot_bb == pytest.approx(200.0)
+
+    def test_save_hand_without_equity_stores_null(self, repo):
+        hand = _make_hand("AE003")
+        repo.save_hand(hand)
+        row = repo.get_hand("AE003")
+        assert row.allin_equity_json is None
+        assert row.allin_pot_bb is None
+
+    def test_reconstructed_hand_without_equity_has_none(self, repo):
+        from app.compute_stats import _to_domain_hand
+        hand = _make_hand("AE004")
+        repo.save_hand(hand)
+        row = repo.get_hand("AE004")
+        reconstructed = _to_domain_hand(row)
+        assert reconstructed.all_in_equity is None
+        assert reconstructed.all_in_pot_bb is None
+
+
+# ---------------------------------------------------------------------------
 # Import use case
 # ---------------------------------------------------------------------------
 

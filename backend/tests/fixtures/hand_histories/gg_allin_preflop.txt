@@ -1,0 +1,28 @@
+Poker Hand #RC9000000001: Hold'em No Limit ($0.05/$0.1) - 2023/12/04 08:00:00
+Table 'RushAndCash99999999' 6-max Seat #1 is the button
+Seat 1: BTNPlayer ($10.00 in chips)
+Seat 2: Hero ($12.00 in chips)
+Seat 3: Villain ($12.00 in chips)
+Hero: posts small blind $0.05
+Villain: posts big blind $0.1
+*** HOLE CARDS ***
+Dealt to BTNPlayer
+Dealt to Hero [Ah Ad]
+Dealt to Villain
+BTNPlayer: folds
+Hero: raises $0.30 to $0.35
+Villain: raises $11.90 to $12 and is all-in
+Hero: calls $11.65 and is all-in
+Hero: shows [Ah Ad]
+Villain: shows [Kh Kd]
+*** FLOP *** [2c 7d Ts]
+*** TURN *** [2c 7d Ts] [3h]
+*** RIVER *** [2c 7d Ts 3h] [9c]
+*** SHOWDOWN ***
+Hero collected $23.7 from pot
+*** SUMMARY ***
+Total pot $24 | Rake $0.3 | Jackpot $0 | Bingo $0 | Fortune $0 | Tax $0
+Board [2c 7d Ts 3h 9c]
+Seat 1: BTNPlayer (button) folded before Flop (didn't bet)
+Seat 2: Hero (small blind) showed [Ah Ad] and won ($23.7) with a pair of Aces
+Seat 3: Villain (big blind) showed [Kh Kd] and lost with a pair of Kings

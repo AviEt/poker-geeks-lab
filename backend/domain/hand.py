@@ -29,6 +29,7 @@ class Hand:
     currency: str = "USD"
     is_walk: bool = False                   # everyone folded to BB; excluded from VPIP/PFR denominator
     cash_drop: float = 0.0                  # GGPoker promotional cash added to pot (not invested by any player)
+    cashout_risk: float = 0.0               # GGPoker EV Cashout fee paid by player (extra rake-like deduction)
     # All-in equity fields (set when players are all-in with cards remaining)
     all_in_equity: dict[str, float] | None = None   # player_name → equity fraction (0.0–1.0)
     all_in_pot_bb: float | None = None              # total pot in big blinds at time of all-in

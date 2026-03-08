@@ -4,10 +4,14 @@ Poker stat computations.
 All functions operate on pure domain objects (Hand, Player) — no DB, no I/O.
 
 Stat definitions follow PokerTracker4 / Hold'em Manager conventions:
-  VPIP  = voluntary preflop entries / (hands - walks)
-  PFR   = preflop raises / (hands - walks)
+  VPIP  = voluntary preflop entries / hands_dealt
+  PFR   = preflop raises / hands_dealt
   BB/100 = net_bb_won / hands * 100
   BB/100 all-in adjusted = equity-adjusted net_bb_won / hands * 100
+
+"hands_dealt" excludes walk hands where Hero is the BB — PT4 definition.
+In those hands Hero had no opportunity to voluntarily act.
+Other walk hands (Hero folded as non-BB) still count in the denominator.
 """
 
 from dataclasses import dataclass
@@ -77,6 +81,19 @@ def _player_in_hand(hand: Hand, player_name: str) -> bool:
     return any(p.name == player_name for p in hand.players)
 
 
+def _is_bb_in_walk(hand: Hand, player_name: str) -> bool:
+    """True when player_name is the BB in a walk hand (PT4: exclude from denominator)."""
+    if not hand.is_walk:
+        return False
+    preflop = next((s for s in hand.streets if s.name == StreetName.PREFLOP), None)
+    if not preflop:
+        return False
+    return any(
+        a.player_name == player_name and a.action_type == ActionType.POST_BB
+        for a in preflop.actions
+    )
+
+
 # ---------------------------------------------------------------------------
 # Core computation
 # ---------------------------------------------------------------------------
@@ -110,12 +127,17 @@ def compute_stats(hands: list[Hand], player_name: str) -> PlayerStats:
         else:
             net_bb_won_adjusted += player.net_won / big_blind
 
-        # VPIP / PFR: exclude walk hands from denominator
-        if hand.is_walk:
+        # VPIP / PFR denominator: PT4 excludes only walks where Hero is the BB.
+        # In those hands Hero had no voluntary decision. Walks where Hero is a
+        # non-BB (folded preflop normally) still count in the denominator.
+        if _is_bb_in_walk(hand, player_name):
             continue
 
         vpip_total += 1
         pfr_total += 1
+
+        if hand.is_walk:
+            continue
 
         actions = _preflop_actions_for(hand, player_name)
         posted_blind = _is_blind_poster(hand, player_name)

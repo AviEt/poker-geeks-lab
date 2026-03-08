@@ -3,12 +3,14 @@ Tests for domain/stats.py — all stat computations.
 All tests use manually constructed Hand objects; no DB, no file I/O.
 
 Stat definitions (source: PokerTracker4 / Hold'em Manager):
-  VPIP  = voluntary preflop entries / (hands - walks)
-  PFR   = preflop raises / (hands - walks)
+  VPIP  = voluntary preflop entries / hands_dealt
+  PFR   = preflop raises / hands_dealt
   BB/100 = net_bb_won / hands * 100
   BB/100 adj = equity-adjusted net_bb_won / hands * 100 (all-in, cards to come)
 
-A "walk" is when everyone folds to the BB — excluded from VPIP/PFR denominator.
+A walk where Hero IS the BB is EXCLUDED from the VPIP/PFR denominator (PT4
+definition) — Hero had no voluntary preflop decision. Walks where Hero is not
+the BB still count in the denominator (Hero made a real decision to fold).
 """
 
 from datetime import datetime
@@ -166,8 +168,12 @@ class TestVPIP:
         assert stats.vpip.total == 1
         assert stats.vpip.percentage == pytest.approx(0.0)
 
-    def test_walk_excluded_from_denominator(self):
-        """When BB gets a walk, that hand is excluded from VPIP calculation."""
+    def test_bb_walk_excluded_from_denominator(self):
+        """
+        PT4 definition: a walk where Hero IS the BB is excluded from the VPIP
+        denominator — Hero had no opportunity to voluntarily act.
+        Walks where Hero is not the BB (Hero folded preflop) still count.
+        """
         player = make_player("Hero")
         walk_hand = make_hand(
             "1", [player],
@@ -187,7 +193,7 @@ class TestVPIP:
             ],
         )
         stats = compute_stats([walk_hand, normal_hand], "Hero")
-        # Walk excluded → denominator is 1 (only the normal hand)
+        # BB walk excluded → only the normal fold hand counts in denominator
         assert stats.vpip.total == 1
         assert stats.vpip.count == 0
 
@@ -263,7 +269,11 @@ class TestPFR:
         assert stats.pfr.count == 0
         assert stats.pfr.percentage == pytest.approx(0.0)
 
-    def test_walk_excluded_from_pfr_denominator(self):
+    def test_bb_walk_excluded_from_pfr_denominator(self):
+        """
+        PT4 definition: a walk where Hero IS the BB is excluded from the PFR
+        denominator — Hero had no opportunity to raise.
+        """
         player = make_player("Hero")
         walk_hand = make_hand(
             "1", [player],
@@ -275,6 +285,7 @@ class TestPFR:
         )
         stats = compute_stats([walk_hand], "Hero")
         assert stats.pfr.total == 0
+        assert stats.pfr.count == 0
 
     def test_pfr_percentage_across_multiple_hands(self):
         player = make_player("Hero")

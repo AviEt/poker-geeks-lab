@@ -5,6 +5,7 @@ Reconstructs minimal domain Hand objects from DB rows, then delegates
 to domain.stats.compute_stats (pure function, no DB dependency).
 """
 
+import json
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -49,6 +50,8 @@ def _to_domain_hand(row: HandRow) -> Hand:
         )
         for s in sorted(row.streets, key=lambda x: x.street_order)
     ]
+    all_in_equity = json.loads(row.allin_equity_json) if row.allin_equity_json else None
+
     return Hand(
         hand_id=row.hand_id,
         game_type=GameType(row.game_type),
@@ -63,4 +66,6 @@ def _to_domain_hand(row: HandRow) -> Hand:
         pot=row.pot,
         rake=row.rake,
         cash_drop=row.cash_drop,
+        all_in_equity=all_in_equity,
+        all_in_pot_bb=row.allin_pot_bb,
     )

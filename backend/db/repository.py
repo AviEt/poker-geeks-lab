@@ -5,6 +5,8 @@ HandRepository persists domain Hand objects and retrieves HandRow records.
 Duplicate hand_ids are silently ignored (idempotent inserts).
 """
 
+import json
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -37,6 +39,8 @@ class HandRepository:
             cash_drop=hand.cash_drop,
             currency=hand.currency,
             is_walk=hand.is_walk,
+            allin_equity_json=json.dumps(hand.all_in_equity) if hand.all_in_equity else None,
+            allin_pot_bb=hand.all_in_pot_bb,
         )
         self._session.add(hand_row)
 

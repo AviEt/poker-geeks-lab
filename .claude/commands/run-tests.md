@@ -7,6 +7,7 @@ Parse the argument to determine which tests to run:
 - `be` or `backend` → backend only
 - `fe` or `frontend` → frontend only
 - `all` or empty → both backend and frontend
+- `sanity` → backend e2e sanity test only (see `.claude/rules/e2e-sanity.md`)
 - Any other value → treat as a pytest/vitest filter (e.g., `test_stats`, `StatsPanel`)
 
 ## Execution
@@ -15,6 +16,11 @@ Launch subagents (in parallel when running both):
 **Backend:**
 ```
 cd backend && uv run pytest -v [filter if provided]
+```
+
+**Sanity (scope = `sanity`):**
+```
+cd backend && uv run pytest -m sanity -v
 ```
 
 **Frontend:**

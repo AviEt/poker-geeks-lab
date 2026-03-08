@@ -209,14 +209,14 @@ class TestNetWon:
     def test_net_won_sum_is_near_zero_minus_rake(self, hands):
         """
         Across all hands in a file, the sum of all players' net_won
-        should equal the negative rake (money leaves the table).
+        should equal cash_drop - rake - cashout_risk (all fees that leave the table).
         Allow some floating-point tolerance.
         """
         for hand in hands:
             total = sum(p.net_won for p in hand.players)
-            expected = hand.cash_drop - hand.rake
+            expected = hand.cash_drop - hand.rake - hand.cashout_risk
             assert total == pytest.approx(expected, abs=0.01), (
-                f"Hand {hand.hand_id}: net_won sum {total:.4f} != cash_drop-rake {expected:.4f}"
+                f"Hand {hand.hand_id}: net_won sum {total:.4f} != cash_drop-rake-cashout_risk {expected:.4f}"
             )
 
 
@@ -230,3 +230,51 @@ class TestErrorHandling:
         bad.write_text("this is not a hand history\n")
         with pytest.raises(ParseError):
             parser.parse_file(bad)
+
+
+# ---------------------------------------------------------------------------
+# All-in equity detection (preflop all-in runout)
+# ---------------------------------------------------------------------------
+
+ALLIN_FIXTURE = FIXTURES / "gg_allin_preflop.txt"
+
+
+class TestAllInEquityParsing:
+    @pytest.fixture
+    def allin_hand(self, parser):
+        return parser.parse_file(ALLIN_FIXTURE)[0]
+
+    def test_opponent_hole_cards_captured_from_preflop_shows(self, allin_hand):
+        """Villain shows cards in the preflop section — must be captured."""
+        villain = next(p for p in allin_hand.players if p.name == "Villain")
+        assert villain.hole_cards == ["Kh", "Kd"]
+
+    def test_allin_equity_is_set(self, allin_hand):
+        """Preflop all-in with both players showing → equity must be populated."""
+        assert allin_hand.all_in_equity is not None
+
+    def test_allin_equity_has_hero_and_villain(self, allin_hand):
+        assert "Hero" in allin_hand.all_in_equity
+        assert "Villain" in allin_hand.all_in_equity
+
+    def test_allin_equity_sums_to_one(self, allin_hand):
+        total = sum(allin_hand.all_in_equity.values())
+        assert abs(total - 1.0) < 0.01
+
+    def test_allin_equity_hero_is_aa_vs_kk_favourite(self, allin_hand):
+        """AA vs KK: Hero should have ~82% equity."""
+        assert abs(allin_hand.all_in_equity["Hero"] - 0.82) < 0.03
+
+    def test_allin_pot_bb_is_set(self, allin_hand):
+        assert allin_hand.all_in_pot_bb is not None
+
+    def test_allin_pot_bb_reflects_hero_net_potential_win(self, allin_hand):
+        """Both players invest $12 at $0.10 BB → hero net potential = 120bb."""
+        assert abs(allin_hand.all_in_pot_bb - 120.0) < 1.0
+
+    def test_no_allin_hand_has_no_equity(self, parser):
+        """A regular hand (no all-in) must leave all_in_equity as None."""
+        # Use a real hand file where most hands are not all-in runouts
+        hands = parser.parse_file(SAMPLE_FILE)
+        non_allin = [h for h in hands if h.all_in_equity is None]
+        assert len(non_allin) > 0
