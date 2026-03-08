@@ -11,7 +11,30 @@ The project was built in a single long Claude Code session (with context compact
 ## Key Prompts
 
 ### Architecture & Setup
-1. **"New project from scratch. Goal: poker learning system starting as a hand tracker"**
+1. **"You are the lead architect for a new software project.
+
+Project name: Poker Geeks Lab.
+
+Goal:
+Build a poker learning system that starts as a poker tracker
+(hand importing + statistics) and later evolves into a training system
+with hand analysis and drills.
+
+First milestone:
+- Import poker hand histories
+- Store them in a database
+- Compute basic stats (VPIP, PFR, 3bet etc.)
+
+Please do the following:
+
+1. Propose a clean architecture for this project
+2. Suggest a tech stack (language + DB)
+3. Define the main modules
+4. Propose a development roadmap for the first 4 iterations
+
+Do NOT generate code yet.
+Only produce the architecture and roadmap.
+"**
    → Produced the full architecture plan, tech stack, module structure, and iteration roadmap.
 
 2. **"What would you use to avoid duplications? I would also like a test that makes sure that the N hands persisted is consistent with the number of hands in the file"**
