@@ -12,6 +12,7 @@ export function ImportPanel({ onImportComplete }: Props = {}) {
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
 
   const handleFiles = (incoming: FileList | null) => {
@@ -44,12 +45,15 @@ export function ImportPanel({ onImportComplete }: Props = {}) {
     if (files.length === 0) return
     setLoading(true)
     setResult(null)
+    setError(null)
     try {
       const res = await importFiles(files)
       setResult(res)
       setFiles([])
       if (inputRef.current) inputRef.current.value = ''
       onImportComplete?.()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setLoading(false)
     }
@@ -108,6 +112,13 @@ export function ImportPanel({ onImportComplete }: Props = {}) {
           </div>
         )}
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="import-errors">
+          <li className="import-error-item">{error}</li>
+        </div>
+      )}
 
       {/* Result */}
       {result && (

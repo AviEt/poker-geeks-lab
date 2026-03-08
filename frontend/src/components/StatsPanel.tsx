@@ -47,13 +47,13 @@ export function StatsPanel({ player }: Props) {
 
       <div className="stats-panel">
         <div className="stat-card">
-          <div className="stat-card__value" data-testid="vpip">{stats.vpip}%</div>
+          <div className="stat-card__value" data-testid="vpip">{stats.vpip.toFixed(2)}%</div>
           <div className="stat-card__label">VPIP</div>
           <div className="stat-card__sub">Vol. put $ in pot</div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-card__value" data-testid="pfr">{stats.pfr}%</div>
+          <div className="stat-card__value" data-testid="pfr">{stats.pfr.toFixed(2)}%</div>
           <div className="stat-card__label">PFR</div>
           <div className="stat-card__sub">Preflop raise</div>
         </div>

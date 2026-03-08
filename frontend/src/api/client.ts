@@ -86,6 +86,7 @@ export async function importFiles(files: File[]): Promise<ImportResult> {
   const form = new FormData()
   for (const f of files) form.append('files', f)
   const resp = await fetch(`${API}/import`, { method: 'POST', body: form })
+  if (!resp.ok) throw new Error(`Server error: ${resp.status}`)
   return resp.json()
 }
 
