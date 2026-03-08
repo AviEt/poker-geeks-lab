@@ -35,7 +35,9 @@ Narrative explanation of the conversation and development process.
 
 ## Key prompts that moved things forward
 
-Include only the most important prompts - Quoted fully.
+Include only the most important prompts - Quoted **word for word, verbatim** from the conversation.
+Do NOT paraphrase, rephrase, fix typos, or clean up the user's language.
+The exact wording — including typos, informal phrasing, and punctuation — is part of the historical record.
 
 ## Important decisions made
 
