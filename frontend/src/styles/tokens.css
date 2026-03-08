@@ -68,6 +68,15 @@
   --color-pot:            #f59e0b;   /* amber for pot display */
   --color-hero:           #10b981;   /* hero player highlight = accent */
 
+  /* Playing card chip — suit-colored background, white text */
+  --color-card-border:       rgba(255, 255, 255, 0.25);  /* subtle white frame */
+  --color-card-shadow:       rgba(0, 0, 0, 0.4);
+  --color-card-text:         #ffffff;
+  --color-suit-spade:        #1e293b;   /* near-black */
+  --color-suit-heart:        #dc2626;   /* red */
+  --color-suit-diamond:      #1d4ed8;   /* blue */
+  --color-suit-club:         #15803d;   /* green */
+
   /* Action badge semantics */
   --color-action-fold-bg:    rgba(71, 85, 105, 0.4);
   --color-action-fold-text:  #94a3b8;

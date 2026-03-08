@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { HandsTable } from '../components/HandsTable'
@@ -93,15 +93,21 @@ describe('HandsTable', () => {
     await waitFor(() => expect(mockFetchHands).toHaveBeenCalledWith('Hero', 2, 20))
   })
 
-  it('renders position, hole cards, and board columns', async () => {
+  it('renders position and card columns using card chips', async () => {
     mockFetchHands.mockResolvedValue(makeResponse([HAND], 1))
     render(<HandsTable player="Hero" />)
     await waitFor(() => {
       expect(screen.getByText('BTN')).toBeDefined()
-      expect(screen.getByText('As Kh')).toBeDefined()
-      expect(screen.getByText('Ts 9d 2c')).toBeDefined()
-      expect(screen.getByText('5h')).toBeDefined()
-      expect(screen.getByText('Jc')).toBeDefined()
+      // Hole cards as chips
+      expect(screen.getByText('A♠')).toBeDefined()
+      expect(screen.getByText('K♥')).toBeDefined()
+      // Flop chips
+      expect(screen.getByText('T♠')).toBeDefined()
+      expect(screen.getByText('9♦')).toBeDefined()
+      expect(screen.getByText('2♣')).toBeDefined()
+      // Turn / River chips
+      expect(screen.getByText('5♥')).toBeDefined()
+      expect(screen.getByText('J♣')).toBeDefined()
     })
   })
 
@@ -131,10 +137,9 @@ describe('HandsTable', () => {
     mockFetchHands.mockResolvedValue(makeResponse([HAND], 1))
     render(<HandsTable player="Hero" />)
     await waitFor(() => {
-      // bb_per_100 and bb_per_100_adj both render 300.00 — use getAllByText
       expect(screen.getAllByText('300.00').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText('$0.30')).toBeDefined()    // pot_won
-      expect(screen.getByText('$0.02')).toBeDefined()    // rake_usd
+      expect(screen.getByText('$0.30')).toBeDefined()
+      expect(screen.getByText('$0.02')).toBeDefined()
     })
   })
 
@@ -154,5 +159,221 @@ describe('HandsTable', () => {
     await user.click(screen.getByRole('button', { name: /prev/i }))
 
     await waitFor(() => expect(mockFetchHands).toHaveBeenCalledWith('Hero', 1, 20))
+  })
+
+  // ── Sorting ───────────────────────────────────────────────────────────────
+
+  it('sorts rows by Net Won descending when column header is clicked', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', net_won: 0.15 },
+      { ...HAND, hand_id: '2', net_won: -0.50 },
+      { ...HAND, hand_id: '3', net_won: 1.00 },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByText('1'))
+    await user.click(screen.getByRole('columnheader', { name: /net won/i }))
+
+    const rows = screen.getAllByRole('row').slice(1)
+    expect(within(rows[0]).getByText('+$1.00')).toBeDefined()
+    expect(within(rows[1]).getByText('+$0.15')).toBeDefined()
+    expect(within(rows[2]).getByText('-$0.50')).toBeDefined()
+  })
+
+  it('toggles sort to ascending on second click of same column', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', net_won: 0.15 },
+      { ...HAND, hand_id: '2', net_won: -0.50 },
+      { ...HAND, hand_id: '3', net_won: 1.00 },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByText('1'))
+    await user.click(screen.getByRole('columnheader', { name: /net won/i }))
+    await user.click(screen.getByRole('columnheader', { name: /net won/i }))
+
+    const rows = screen.getAllByRole('row').slice(1)
+    expect(within(rows[0]).getByText('-$0.50')).toBeDefined()
+    expect(within(rows[2]).getByText('+$1.00')).toBeDefined()
+  })
+
+  it('sorts by position using canonical poker order BTN first', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_position: 'CO' },
+      { ...HAND, hand_id: '2', hero_position: 'BTN' },
+      { ...HAND, hand_id: '3', hero_position: 'SB' },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByText('1'))
+    await user.click(screen.getByRole('columnheader', { name: /position/i }))
+
+    const rows = screen.getAllByRole('row').slice(1)
+    expect(within(rows[0]).getByText('BTN')).toBeDefined()
+    expect(within(rows[1]).getByText('CO')).toBeDefined()
+    expect(within(rows[2]).getByText('SB')).toBeDefined()
+  })
+
+  it('sorts by hole cards alphabetically ascending', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_hole_cards: 'Kh Qd' },
+      { ...HAND, hand_id: '2', hero_hole_cards: 'As Kh' },
+      { ...HAND, hand_id: '3', hero_hole_cards: '2c 3d' },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByText('1'))
+    await user.click(screen.getByRole('columnheader', { name: /hole cards/i }))
+
+    const rows = screen.getAllByRole('row').slice(1)
+    // Ascending alpha: '2c 3d' < 'As Kh' < 'Kh Qd'
+    // Use '3♦' (from '3d') to identify the '2c 3d' hand — '2c' also appears in the shared flop fixture
+    expect(within(rows[0]).getByText('3♦')).toBeDefined()
+    expect(within(rows[1]).getByText('A♠')).toBeDefined()
+    expect(within(rows[2]).getByText('K♥')).toBeDefined()
+  })
+
+  it('shows sort direction indicator on active column', async () => {
+    mockFetchHands.mockResolvedValue(makeResponse([HAND], 1))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByText('12345'))
+    const header = screen.getByRole('columnheader', { name: /net won/i })
+    expect(header.textContent).not.toMatch(/[↑↓]/)
+
+    await user.click(header)
+    expect(header.textContent).toMatch(/[↑↓]/)
+  })
+
+  // ── Filtering ─────────────────────────────────────────────────────────────
+
+  it('renders position filter chips for available positions', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_position: 'BTN' },
+      { ...HAND, hand_id: '2', hero_position: 'CO' },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 2))
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'BTN' })).toBeDefined()
+      expect(screen.getByRole('button', { name: 'CO' })).toBeDefined()
+    })
+  })
+
+  it('filters rows by a single selected position', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_position: 'BTN' },
+      { ...HAND, hand_id: '2', hero_position: 'CO' },
+      { ...HAND, hand_id: '3', hero_position: 'BTN' },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByRole('button', { name: 'BTN' }))
+    await user.click(screen.getByRole('button', { name: 'BTN' }))
+
+    expect(screen.getByText('1')).toBeDefined()
+    expect(screen.getByText('3')).toBeDefined()
+    expect(screen.queryByText('2')).toBeNull()
+  })
+
+  it('supports multi-select: BTN and CO both shown when both selected', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_position: 'BTN' },
+      { ...HAND, hand_id: '2', hero_position: 'CO' },
+      { ...HAND, hand_id: '3', hero_position: 'SB' },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByRole('button', { name: 'BTN' }))
+    await user.click(screen.getByRole('button', { name: 'BTN' }))
+    await user.click(screen.getByRole('button', { name: 'CO' }))
+
+    expect(screen.getByText('1')).toBeDefined()
+    expect(screen.getByText('2')).toBeDefined()
+    expect(screen.queryByText('3')).toBeNull()
+  })
+
+  it('deselecting a position chip removes that filter', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_position: 'BTN' },
+      { ...HAND, hand_id: '2', hero_position: 'CO' },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 2))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByRole('button', { name: 'BTN' }))
+    await user.click(screen.getByRole('button', { name: 'BTN' }))
+    expect(screen.queryByText('2')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'BTN' }))
+    expect(screen.getByText('2')).toBeDefined()
+  })
+
+  it('filters by stakes multi-select', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', small_blind: 0.02, big_blind: 0.05 },
+      { ...HAND, hand_id: '2', small_blind: 0.05, big_blind: 0.10 },
+      { ...HAND, hand_id: '3', small_blind: 0.02, big_blind: 0.05 },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByRole('button', { name: '$0.02/$0.05' }))
+    await user.click(screen.getByRole('button', { name: '$0.02/$0.05' }))
+
+    expect(screen.getByText('1')).toBeDefined()
+    expect(screen.getByText('3')).toBeDefined()
+    expect(screen.queryByText('2')).toBeNull()
+  })
+
+  it('filters rows by hole cards text input', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_hole_cards: 'As Kh' },
+      { ...HAND, hand_id: '2', hero_hole_cards: 'Qd Jc' },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 2))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByText('1'))
+    await user.type(screen.getByRole('textbox', { name: /hole cards/i }), 'As')
+
+    expect(screen.getByText('1')).toBeDefined()
+    expect(screen.queryByText('2')).toBeNull()
+  })
+
+  it('position and stakes filters compose with AND logic', async () => {
+    const hands = [
+      { ...HAND, hand_id: '1', hero_position: 'BTN', small_blind: 0.02, big_blind: 0.05 },
+      { ...HAND, hand_id: '2', hero_position: 'CO', small_blind: 0.02, big_blind: 0.05 },
+      { ...HAND, hand_id: '3', hero_position: 'BTN', small_blind: 0.05, big_blind: 0.10 },
+    ]
+    mockFetchHands.mockResolvedValue(makeResponse(hands, 3))
+    const user = userEvent.setup()
+    render(<HandsTable player="Hero" />)
+
+    await waitFor(() => screen.getByRole('button', { name: 'BTN' }))
+    await user.click(screen.getByRole('button', { name: 'BTN' }))
+    await user.click(screen.getByRole('button', { name: '$0.02/$0.05' }))
+
+    expect(screen.getByText('1')).toBeDefined()
+    expect(screen.queryByText('2')).toBeNull()
+    expect(screen.queryByText('3')).toBeNull()
   })
 })

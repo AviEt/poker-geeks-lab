@@ -1,3 +1,89 @@
+/* ── Filter bar ── */
+.hands-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.filter-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.filter-chip:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.filter-chip--active {
+  background: var(--color-accent-dim);
+  color: var(--color-accent-text);
+  border-color: var(--color-accent);
+}
+
+.filter-input {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-badge);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text);
+  outline: none;
+  font-family: var(--font-family-mono);
+  width: 100px;
+  transition: border-color var(--duration-fast);
+}
+
+.filter-input:focus {
+  border-color: var(--color-accent);
+}
+
+.filter-input::placeholder {
+  color: var(--color-text-subtle);
+}
+
+/* ── Sort header ── */
+.sort-header {
+  user-select: none;
+}
+
+.sort-header--active {
+  color: var(--color-accent-text) !important;
+}
+
 /* ── Hands Table ── */
 
 .hands-table-wrap {
