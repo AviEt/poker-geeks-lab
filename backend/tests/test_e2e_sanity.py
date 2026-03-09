@@ -38,10 +38,10 @@ from main import app
 REAL_HANDS_DIR = Path(__file__).parent / "fixtures" / "hand_histories" / "real_hands"
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def engine():
     """
-    In-memory SQLite engine.
+    In-memory SQLite engine, shared across the whole test class.
     Cleanup is automatic: the DB ceases to exist when this fixture tears down.
     """
     eng = create_engine(
@@ -55,7 +55,7 @@ def engine():
     eng.dispose()
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def client(engine):
     app.dependency_overrides[get_engine] = lambda: engine
     with TestClient(app) as c:
@@ -70,7 +70,7 @@ class TestFullSessionSanity:
     These numbers are ground truth — never adjust them to fix a failing test.
     """
 
-    @pytest.fixture(autouse=True)
+    @pytest.fixture(autouse=True, scope="class")
     def import_all_hands(self, client):
         hand_files = sorted(REAL_HANDS_DIR.glob("*.txt"))
         assert len(hand_files) == 32, (
