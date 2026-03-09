@@ -28,4 +28,4 @@ frontend/.vite/
 .idea/
 
 # App
-poker_geeks_lab.db 
+backend/poker_geeks_lab.db
