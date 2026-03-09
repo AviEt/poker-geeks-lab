@@ -239,10 +239,16 @@ class TestErrorHandling:
 ALLIN_FIXTURE = FIXTURES / "gg_allin_preflop.txt"
 
 
+@pytest.fixture(scope="module")
+def allin_hand_preflop():
+    """Parsed preflop all-in hand — module-scoped so equity enumeration runs once."""
+    return GGPokerParser().parse_file(ALLIN_FIXTURE)[0]
+
+
 class TestAllInEquityParsing:
     @pytest.fixture
-    def allin_hand(self, parser):
-        return parser.parse_file(ALLIN_FIXTURE)[0]
+    def allin_hand(self, allin_hand_preflop):
+        return allin_hand_preflop
 
     def test_opponent_hole_cards_captured_from_preflop_shows(self, allin_hand):
         """Villain shows cards in the preflop section — must be captured."""
@@ -282,3 +288,35 @@ class TestAllInEquityParsing:
         hands = parser.parse_file(SAMPLE_FILE)
         non_allin = [h for h in hands if h.all_in_equity is None]
         assert len(non_allin) > 0
+
+    def test_allin_equity_is_deterministic(self, parser):
+        """
+        Equity computation must be deterministic — parsing the same hand twice
+        must yield bit-for-bit identical equity values.  Monte Carlo sampling
+        would fail this test; exact enumeration passes it.
+
+        Uses a turn all-in fixture (only 44 run-outs) to keep the test fast.
+        """
+        turn_fixture = FIXTURES / "gg_allin_turn.txt"
+        hand_a = parser.parse_file(turn_fixture)[0]
+        hand_b = parser.parse_file(turn_fixture)[0]
+        assert hand_a.all_in_equity == hand_b.all_in_equity
+
+    def test_deterministic_outcome_not_marked_as_allin(self, parser):
+        """
+        When one player has 100 % equity (the outcome is already certain at
+        the time of all-in), the hand must NOT be flagged as all-in adjusted.
+        all_in_equity should be None so that actual net_won is used instead.
+
+        RC2030688727: Hero 9hAh vs QdJh on board 2s As 3d after turn all-in.
+        Hero has 100 % equity — every possible river card keeps him ahead.
+        """
+        target_id = "2030688727"
+        all_hands: list = []
+        for path in REAL_HANDS.glob("*.txt"):
+            all_hands.extend(parser.parse_file(path))
+        hand = next((h for h in all_hands if h.hand_id == target_id), None)
+        assert hand is not None, f"Hand {target_id} not found in real_hands fixtures"
+        assert hand.all_in_equity is None, (
+            "Hand with deterministic 100% equity must not be all-in adjusted"
+        )

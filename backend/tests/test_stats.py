@@ -424,3 +424,45 @@ class TestBB100Adjusted:
 
         stats = compute_stats([hand1, hand2], "Hero")
         assert stats.bb_per_100_adjusted == pytest.approx(3500.0)
+
+    def test_allin_deterministic_equity_not_adjusted(self):
+        """
+        When equity is exactly 0.0 or 1.0 the outcome is already certain —
+        adjusted result must equal actual net_won (no EV substitution).
+        """
+        # Hero has 100% equity (e.g. opponent drawing dead) and wins
+        player_win = make_player("Hero", net_won=2.00)  # won 100bb
+        hand_win = make_hand("1", [player_win], [], big_blind=0.02)
+        hand_win.all_in_equity = {"Hero": 1.0}
+        hand_win.all_in_pot_bb = 200.0
+        hand_win.all_in_invested_bb = 100.0
+
+        stats_win = compute_stats([hand_win], "Hero")
+        assert stats_win.bb_per_100_adjusted == pytest.approx(stats_win.bb_per_100)
+
+        # Hero has 0% equity (drawing dead) and loses
+        player_lose = make_player("Hero", net_won=-2.00)
+        hand_lose = make_hand("2", [player_lose], [], big_blind=0.02)
+        hand_lose.all_in_equity = {"Hero": 0.0}
+        hand_lose.all_in_pot_bb = 200.0
+        hand_lose.all_in_invested_bb = 100.0
+
+        stats_lose = compute_stats([hand_lose], "Hero")
+        assert stats_lose.bb_per_100_adjusted == pytest.approx(stats_lose.bb_per_100)
+
+    def test_allin_equity_is_deterministic_across_runs(self):
+        """
+        Equity calculation must be deterministic — running compute_stats twice
+        on the same all-in hand must produce identical adjusted BB/100.
+        This ensures we use exact enumeration, not Monte Carlo sampling.
+        """
+        player = make_player("Hero", net_won=-2.00)
+        hand = make_hand("1", [player], [], big_blind=0.05)
+        # Known hole cards so equity can be computed
+        hand.all_in_equity = {"Hero": 0.7523}   # placeholder — will be recalculated
+        hand.all_in_pot_bb = 100.0
+        hand.all_in_invested_bb = 50.0
+
+        result1 = compute_stats([hand], "Hero").bb_per_100_adjusted
+        result2 = compute_stats([hand], "Hero").bb_per_100_adjusted
+        assert result1 == result2

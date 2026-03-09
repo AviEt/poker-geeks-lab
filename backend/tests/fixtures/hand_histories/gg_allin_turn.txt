@@ -1,0 +1,28 @@
+Poker Hand #RC9000000002: Hold'em No Limit ($0.05/$0.1) - 2023/12/04 08:00:00
+Table 'RushAndCash99999999' 6-max Seat #1 is the button
+Seat 1: Hero ($10.00 in chips)
+Seat 2: Villain ($10.00 in chips)
+Hero: posts small blind $0.05
+Villain: posts big blind $0.1
+*** HOLE CARDS ***
+Dealt to Hero [Ah Kc]
+Dealt to Villain
+Villain: raises $0.30 to $0.40
+Hero: raises $1.00 to $1.40
+Villain: calls $1.00
+*** FLOP *** [2c 5h 9d]
+Hero: bet $1.50
+Villain: call $1.50
+*** TURN *** [2c 5h 9d] [Ac]
+Hero: raises $7.10 to $7.10 and is all-in
+Villain: calls $7.10 and is all-in
+Hero: shows [Ah Kc]
+Villain: shows [Qh Qd]
+*** RIVER *** [2c 5h 9d Ac] [3s]
+*** SHOWDOWN ***
+Hero collected $19.53 from pot
+*** SUMMARY ***
+Total pot $19.80 | Rake $0.27 | Jackpot $0 | Bingo $0 | Fortune $0 | Tax $0
+Board [2c 5h 9d Ac 3s]
+Seat 1: Hero (small blind) showed [Ah Kc] and won ($19.53) with a pair of Aces
+Seat 2: Villain (big blind) showed [Qh Qd] and lost with a pair of Queens

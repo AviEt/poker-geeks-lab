@@ -525,8 +525,15 @@ class GGPokerParser(BaseParser):
                 total_invested[name] = total_invested.get(name, 0.0) + amount
 
         hero_investment = total_invested.get(hero_name, 0.0)
-        # Main pot: cap each player's contribution at Hero's all-in amount.
-        # Hero can't win side-pot chips exceeding their own investment.
+        # Cap Hero's investment at max active opponent's investment.
+        # Excess was returned as "Uncalled bet" and shouldn't count.
+        active_opp_invests = [
+            total_invested.get(n, 0.0)
+            for n in active_with_cards if n != hero_name
+        ]
+        if active_opp_invests:
+            hero_investment = min(hero_investment, max(active_opp_invests))
+        # Main pot: cap each player's contribution at Hero's effective investment.
         main_pot = sum(min(v, hero_investment) for v in total_invested.values())
         all_in_pot_bb = main_pot / big_blind
         all_in_invested_bb = hero_investment / big_blind
@@ -534,6 +541,10 @@ class GGPokerParser(BaseParser):
         from domain.equity import calculate_equity
 
         equity = calculate_equity(active_with_cards, board=board if board else None)
+
+        # Skip hands where the outcome is already certain — no adjustment needed.
+        if any(v == 0.0 or v == 1.0 for v in equity.values()):
+            return None, None, None
 
         return equity, all_in_pot_bb, all_in_invested_bb
 

@@ -1,11 +1,10 @@
 """
-Poker equity calculation using Monte Carlo simulation.
+Poker equity calculation using exact enumeration.
 
-Uses treys for fast hand strength evaluation.
-10,000 samples gives ~0.5% accuracy — sufficient for BB/100 statistics.
+Enumerates all possible run-outs to produce deterministic, exact results.
 """
 
-import random
+from itertools import combinations
 
 from treys import Card, Evaluator
 
@@ -13,7 +12,6 @@ _EVALUATOR = Evaluator()
 _RANKS = "23456789TJQKA"
 _SUITS = "hdcs"
 _ALL_CARDS = [r + s for r in _RANKS for s in _SUITS]
-_SAMPLES = 10_000
 
 
 def calculate_equity(
@@ -21,14 +19,14 @@ def calculate_equity(
     board: list[str] | None = None,
 ) -> dict[str, float]:
     """
-    Calculate equity for each player via Monte Carlo simulation.
+    Calculate equity for each player via exact enumeration of all run-outs.
 
     Args:
         players: {player_name: [card1, card2]}
         board:   community cards already on the table (empty = preflop)
 
     Returns:
-        {player_name: equity_fraction}  (values sum to ~1.0)
+        {player_name: equity_fraction}  (values sum to exactly 1.0)
     """
     if board is None:
         board = []
@@ -49,11 +47,10 @@ def calculate_equity(
     treys_board_base = [Card.new(c) for c in board]
 
     wins: dict[str, float] = {name: 0.0 for name in player_names}
+    total = 0
 
-    for _ in range(_SAMPLES):
-        run = random.sample(remaining, cards_needed)
+    for run in combinations(remaining, cards_needed):
         full_board = treys_board_base + [Card.new(c) for c in run]
-
         scores = {
             name: _EVALUATOR.evaluate(full_board, hand)
             for name, hand in treys_hands.items()
@@ -63,5 +60,6 @@ def calculate_equity(
         share = 1.0 / len(winners)
         for w in winners:
             wins[w] += share
+        total += 1
 
-    return {name: wins[name] / _SAMPLES for name in player_names}
+    return {name: wins[name] / total for name in player_names}

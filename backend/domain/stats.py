@@ -119,12 +119,12 @@ def compute_stats(hands: list[Hand], player_name: str) -> PlayerStats:
         net_bb_won += player.net_won / big_blind
 
         # BB/100 all-in adjusted
-        # For all-in pots with cards remaining: replace actual result with
-        # equity × total_pot − hero_investment (PT4 / HM definition).
+        # PT4 formula: equity × (pot − rake) − hero_investment
         if (hand.all_in_equity and player_name in hand.all_in_equity
                 and hand.all_in_pot_bb is not None and hand.all_in_invested_bb is not None):
             equity = hand.all_in_equity[player_name]
-            net_bb_won_adjusted += equity * hand.all_in_pot_bb - hand.all_in_invested_bb
+            rake_bb = hand.rake / big_blind
+            net_bb_won_adjusted += equity * (hand.all_in_pot_bb - rake_bb) - hand.all_in_invested_bb
         else:
             net_bb_won_adjusted += player.net_won / big_blind
 

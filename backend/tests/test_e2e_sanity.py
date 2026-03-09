@@ -110,8 +110,8 @@ class TestFullSessionSanity:
             f"Expected BB/100 ~13.1, got {stats['bb_per_100']}"
         )
 
-    # def test_bb_per_100_all_in_adjusted(self, client):
-    #     stats = client.get("/Hero/stats").json()
-    #     assert abs(stats["bb_per_100_adjusted"] - 7.74) < 0.01, (
-    #         f"Expected all-in adj BB/100 ~7.74, got {stats['bb_per_100_adjusted']}"
-    #     )
+    def test_bb_per_100_all_in_adjusted(self, client):
+        stats = client.get("/Hero/stats").json()
+        assert abs(stats["bb_per_100_adjusted"] - 8.02) < 0.01, (
+            f"Expected all-in adj BB/100 ~8.02, got {stats['bb_per_100_adjusted']}"
+        )
