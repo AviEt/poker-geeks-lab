@@ -372,43 +372,45 @@ class TestBB100Adjusted:
 
     def test_allin_win_with_80pct_equity(self):
         """
-        All-in preflop, pot = 100bb, Hero has 80% equity.
-        Adjusted result = +80bb regardless of actual outcome.
+        All-in preflop, 200bb pot, Hero invested 100bb, 80% equity.
+        PT4 adjusted = equity × pot − investment = 0.80 × 200 − 100 = +60bb.
         """
-        player_win = make_player("Hero", net_won=2.00)   # won the 100bb ($2) pot
+        player_win = make_player("Hero", net_won=2.00)   # won the pot
         hand = make_hand("1", [player_win], [], big_blind=0.02)
-        # Hero had 80% equity in a 100bb pot
         hand.all_in_equity = {"Hero": 0.80}
-        hand.all_in_pot_bb = 100.0
+        hand.all_in_pot_bb = 200.0
+        hand.all_in_invested_bb = 100.0
         stats = compute_stats([hand], "Hero")
-        assert stats.bb_per_100_adjusted == pytest.approx(80.0 * 100)  # per 100 hands
+        assert stats.bb_per_100_adjusted == pytest.approx(60.0 * 100)  # per 100 hands
 
     def test_allin_lose_with_80pct_equity(self):
         """
         Same equity scenario but Hero runs bad and loses.
-        Adjusted result is still +80bb (equity, not result).
+        Adjusted result is still +60bb (equity, not result).
         """
         player_lose = make_player("Hero", net_won=-2.00)  # lost the pot
         hand = make_hand("1", [player_lose], [], big_blind=0.02)
         hand.all_in_equity = {"Hero": 0.80}
-        hand.all_in_pot_bb = 100.0
+        hand.all_in_pot_bb = 200.0
+        hand.all_in_invested_bb = 100.0
         stats = compute_stats([hand], "Hero")
-        assert stats.bb_per_100_adjusted == pytest.approx(80.0 * 100)
+        assert stats.bb_per_100_adjusted == pytest.approx(60.0 * 100)
 
     def test_allin_tie_50pct_equity(self):
-        """50/50 all-in: adjusted = +50bb on 100bb pot."""
+        """50/50 all-in in 200bb pot: adjusted = 0.50 × 200 − 100 = 0bb."""
         player = make_player("Hero", net_won=1.00)  # half the pot
         hand = make_hand("1", [player], [], big_blind=0.02)
         hand.all_in_equity = {"Hero": 0.50}
-        hand.all_in_pot_bb = 100.0
+        hand.all_in_pot_bb = 200.0
+        hand.all_in_invested_bb = 100.0
         stats = compute_stats([hand], "Hero")
-        assert stats.bb_per_100_adjusted == pytest.approx(50.0 * 100)
+        assert stats.bb_per_100_adjusted == pytest.approx(0.0)
 
     def test_adjusted_averages_over_multiple_hands(self):
         """
         Hand 1: normal hand, win 10bb.
-        Hand 2: all-in, 80% equity in 100bb pot (regardless of result).
-        Adjusted BB/100 = (10 + 80) / 2 * 100 = 4500.
+        Hand 2: all-in, 80% equity in 200bb pot, invested 100bb → +60bb adjusted.
+        Adjusted BB/100 = (10 + 60) / 2 * 100 = 3500.
         """
         p1 = make_player("Hero", net_won=0.20)   # win 10bb
         hand1 = make_hand("1", [p1], [], big_blind=0.02)
@@ -417,7 +419,8 @@ class TestBB100Adjusted:
         p2 = make_player("Hero", net_won=-2.00)  # lost 100bb all-in
         hand2 = make_hand("2", [p2], [], big_blind=0.02)
         hand2.all_in_equity = {"Hero": 0.80}
-        hand2.all_in_pot_bb = 100.0
+        hand2.all_in_pot_bb = 200.0
+        hand2.all_in_invested_bb = 100.0
 
         stats = compute_stats([hand1, hand2], "Hero")
-        assert stats.bb_per_100_adjusted == pytest.approx(4500.0)
+        assert stats.bb_per_100_adjusted == pytest.approx(3500.0)

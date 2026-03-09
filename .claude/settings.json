@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "Agent",
+      "WebSearch",
+      "Bash(cd backend && uv run pytest*)",
+      "Bash(cd backend && uv run python*)",
+      "Bash(cd frontend && npm test*)",
+      "Bash(git diff*)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(ls*)"
+    ]
+  }
+}

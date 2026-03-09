@@ -41,6 +41,7 @@ class HandRepository:
             is_walk=hand.is_walk,
             allin_equity_json=json.dumps(hand.all_in_equity) if hand.all_in_equity else None,
             allin_pot_bb=hand.all_in_pot_bb,
+            allin_invested_bb=hand.all_in_invested_bb,
         )
         self._session.add(hand_row)
 

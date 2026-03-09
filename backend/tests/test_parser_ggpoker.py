@@ -214,7 +214,7 @@ class TestNetWon:
         """
         for hand in hands:
             total = sum(p.net_won for p in hand.players)
-            expected = hand.cash_drop - hand.rake - hand.cashout_risk
+            expected = hand.cash_drop - hand.rake
             assert total == pytest.approx(expected, abs=0.01), (
                 f"Hand {hand.hand_id}: net_won sum {total:.4f} != cash_drop-rake-cashout_risk {expected:.4f}"
             )
@@ -268,9 +268,13 @@ class TestAllInEquityParsing:
     def test_allin_pot_bb_is_set(self, allin_hand):
         assert allin_hand.all_in_pot_bb is not None
 
-    def test_allin_pot_bb_reflects_hero_net_potential_win(self, allin_hand):
-        """Both players invest $12 at $0.10 BB → hero net potential = 120bb."""
-        assert abs(allin_hand.all_in_pot_bb - 120.0) < 1.0
+    def test_allin_pot_bb_reflects_total_main_pot(self, allin_hand):
+        """Both players invest $12 at $0.10 BB → total main pot = 240bb."""
+        assert abs(allin_hand.all_in_pot_bb - 240.0) < 1.0
+
+    def test_allin_invested_bb_is_set(self, allin_hand):
+        """Hero invested $12 at $0.10 BB → 120bb."""
+        assert abs(allin_hand.all_in_invested_bb - 120.0) < 1.0
 
     def test_no_allin_hand_has_no_equity(self, parser):
         """A regular hand (no all-in) must leave all_in_equity as None."""

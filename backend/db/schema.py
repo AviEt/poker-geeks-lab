@@ -41,7 +41,8 @@ class HandRow(Base):
     currency = Column(String, nullable=False, default="USD")
     is_walk = Column(Boolean, nullable=False, default=False)
     allin_equity_json = Column(String, nullable=True)   # JSON: {player_name: equity_fraction}
-    allin_pot_bb = Column(Float, nullable=True)         # hero's net potential win in BBs
+    allin_pot_bb = Column(Float, nullable=True)         # total pot in BBs at time of all-in
+    allin_invested_bb = Column(Float, nullable=True)    # hero's investment in BBs at time of all-in
 
     players = relationship("PlayerRow", back_populates="hand", cascade="all, delete-orphan")
     streets = relationship("StreetRow", back_populates="hand", cascade="all, delete-orphan",

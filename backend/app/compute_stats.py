@@ -68,4 +68,5 @@ def _to_domain_hand(row: HandRow) -> Hand:
         cash_drop=row.cash_drop,
         all_in_equity=all_in_equity,
         all_in_pot_bb=row.allin_pot_bb,
+        all_in_invested_bb=row.allin_invested_bb,
     )

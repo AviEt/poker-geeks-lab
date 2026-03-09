@@ -51,6 +51,9 @@ _TOTAL_POT = re.compile(r"Total pot \$(?P<pot>[\d.]+)")
 _FEE_FIELD = re.compile(r"\| (?:Rake|Jackpot|Bingo|Fortune|Tax) \$(?P<amount>[\d.]+)")
 _CASH_DROP = re.compile(r"Cash Drop to Pot : total \$(?P<amount>[\d.]+)")
 _CASHOUT_RISK = re.compile(r"(?P<name>.+?): Pays Cashout Risk \(\$(?P<amount>[\d.]+)\)")
+# GGPoker "Bet & Muck" — player bets/raises and opponent folds, no showdown required
+_BET_AND_MUCK = re.compile(r"(?P<name>.+?): Bet & Muck \$(?P<amount>[\d.]+)$")
+_RAISE_AND_MUCK = re.compile(r"(?P<name>.+?): Bet & Muck \$[\d.]+ to \$(?P<amount>[\d.]+)")
 # GGPoker hand boundary: starts a new hand block
 _HAND_START = re.compile(r"^Poker Hand #RC\d+:")
 
@@ -164,8 +167,8 @@ class GGPokerParser(BaseParser):
 
         is_walk = self._detect_walk(preflop_street, player_map)
 
-        all_in_equity, all_in_pot_bb = self._detect_preflop_allin(
-            preflop_street, player_map, hero_name, big_blind
+        all_in_equity, all_in_pot_bb, all_in_invested_bb = self._detect_allin(
+            streets, player_map, hero_name, big_blind
         )
 
         return Hand(
@@ -186,6 +189,7 @@ class GGPokerParser(BaseParser):
             cashout_risk=cashout_risk,
             all_in_equity=all_in_equity,
             all_in_pot_bb=all_in_pot_bb,
+            all_in_invested_bb=all_in_invested_bb,
         )
 
     # ------------------------------------------------------------------
@@ -377,6 +381,16 @@ class GGPokerParser(BaseParser):
         if m:
             return Action(m.group("name"), ActionType.MUCKS)
 
+        # GGPoker "Bet & Muck": player bets/raises and opponent folds (no showdown).
+        # "Bet & Muck $X to $Y" is a raise (total = $Y); "Bet & Muck $X" is a bet.
+        m = _RAISE_AND_MUCK.match(line)
+        if m:
+            return Action(m.group("name"), ActionType.RAISE, float(m.group("amount")))
+
+        m = _BET_AND_MUCK.match(line)
+        if m:
+            return Action(m.group("name"), ActionType.BET, float(m.group("amount")))
+
         return None
 
     # ------------------------------------------------------------------
@@ -396,14 +410,12 @@ class GGPokerParser(BaseParser):
             name = m.group("name")
             if name in player_map:
                 player_map[name].net_won += float(m.group("amount"))
-        # GGPoker EV Cashout: fee deducted from winnings, must reduce net_won
+        # GGPoker EV Cashout risk: PT4 treats this as a rake-like fee, not a
+        # deduction from net_won.  The "collected" line already reflects the
+        # actual board result; cashout risk is tracked separately for reporting.
         total_cashout_risk = 0.0
         for m in _CASHOUT_RISK.finditer(text):
-            name = m.group("name")
-            amount = float(m.group("amount"))
-            total_cashout_risk += amount
-            if name in player_map:
-                player_map[name].net_won -= amount
+            total_cashout_risk += float(m.group("amount"))
         return total_cashout_risk
 
     def _apply_invested(self, street: Street, player_map: dict[str, Player]) -> None:
@@ -432,57 +444,98 @@ class GGPokerParser(BaseParser):
     # All-in equity detection
     # ------------------------------------------------------------------
 
-    def _detect_preflop_allin(
+    def _detect_allin(
         self,
-        preflop: Street,
+        streets: list[Street],
         player_map: dict[str, Player],
         hero_name: str | None,
         big_blind: float,
-    ) -> tuple[dict[str, float] | None, float | None]:
+    ) -> tuple[dict[str, float] | None, float | None, float | None]:
         """
-        Detect a preflop all-in runout and return (equity_dict, all_in_pot_bb).
+        Detect an all-in with cards remaining (any street) and return
+        (equity_dict, main_pot_bb, hero_invested_bb).
 
-        all_in_pot_bb = (total_preflop_pot - hero_investment) / big_blind,
-        i.e. the net amount Hero stands to win in BBs (opponent's contribution).
+        PT4 all-in EV = equity × main_pot − hero_investment.
+        Triggers when ANY player is all-in before the river AND Hero is
+        active (not folded) AND all active players' cards are known.
 
-        Returns (None, None) if no all-in runout is found.
+        Returns (None, None, None) if no qualifying all-in is found.
         """
-        # Require Hero specifically to be all-in (not just any opponent)
-        if hero_name is None or not any(
-            a.is_all_in and a.player_name == hero_name for a in preflop.actions
-        ):
-            return None, None
+        if hero_name is None:
+            return None, None, None
 
-        # All active players must have hole cards (revealed via shows lines)
-        players_with_cards = {
+        skip = {ActionType.WINS, ActionType.SHOWS, ActionType.MUCKS}
+
+        # Track who folded on each street
+        folded: set[str] = set()
+
+        # Find the earliest non-river street with an all-in action
+        allin_street_idx = None
+        for i, street in enumerate(streets):
+            if street.name == StreetName.RIVER:
+                break
+            has_allin = False
+            for action in street.actions:
+                if action.action_type == ActionType.FOLD:
+                    folded.add(action.player_name)
+                if action.is_all_in:
+                    has_allin = True
+            if has_allin:
+                allin_street_idx = i
+                break
+            # Even if no all-in, track folds for earlier streets
+
+        if allin_street_idx is None:
+            return None, None, None
+
+        # Hero must not have folded
+        if hero_name in folded:
+            return None, None, None
+
+        # Active players = have hole cards and did NOT fold
+        active_with_cards = {
             name: p.hole_cards
             for name, p in player_map.items()
-            if p.hole_cards
+            if p.hole_cards and name not in folded
         }
-        if len(players_with_cards) < 2:
-            return None, None
+        if len(active_with_cards) < 2 or hero_name not in active_with_cards:
+            return None, None, None
 
-        # Compute each player's total preflop investment (mirrors _apply_invested)
-        invested: dict[str, float] = {}
-        skip = {ActionType.WINS, ActionType.SHOWS, ActionType.MUCKS}
-        for action in preflop.actions:
-            if not action.amount or action.action_type in skip:
-                continue
-            if action.action_type == ActionType.RAISE:
-                invested[action.player_name] = action.amount
-            else:
-                invested[action.player_name] = (
-                    invested.get(action.player_name, 0.0) + action.amount
-                )
+        # Build the board at the point of all-in
+        board: list[str] = []
+        for street in streets[: allin_street_idx + 1]:
+            if street.cards:
+                board.extend(street.cards)
 
-        total_pot = sum(invested.values())
-        hero_investment = invested.get(hero_name, 0.0) if hero_name else 0.0
-        all_in_pot_bb = (total_pot - hero_investment) / big_blind
+        # Compute total investment across all streets up to and including the
+        # all-in street (each street uses the RAISE-supersedes-within-street rule).
+        total_invested: dict[str, float] = {}
+        for street in streets[: allin_street_idx + 1]:
+            street_invested: dict[str, float] = {}
+            for action in street.actions:
+                if not action.amount or action.action_type in skip:
+                    continue
+                if action.action_type == ActionType.RAISE:
+                    street_invested[action.player_name] = action.amount
+                else:
+                    street_invested[action.player_name] = (
+                        street_invested.get(action.player_name, 0.0) + action.amount
+                    )
+            for name, amount in street_invested.items():
+                total_invested[name] = total_invested.get(name, 0.0) + amount
+
+        hero_investment = total_invested.get(hero_name, 0.0)
+        # Main pot: cap each player's contribution at Hero's all-in amount.
+        # Hero can't win side-pot chips exceeding their own investment.
+        main_pot = sum(min(v, hero_investment) for v in total_invested.values())
+        all_in_pot_bb = main_pot / big_blind
+        all_in_invested_bb = hero_investment / big_blind
 
         from domain.equity import calculate_equity
-        equity = calculate_equity(players_with_cards)
 
-        return equity, all_in_pot_bb
+        equity = calculate_equity(active_with_cards, board=board if board else None)
+
+        return equity, all_in_pot_bb, all_in_invested_bb
 
     # ------------------------------------------------------------------
     # Walk detection
