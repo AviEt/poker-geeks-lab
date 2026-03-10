@@ -18,13 +18,13 @@ Sizing rationale:
 
 | Metric | PT4 | HM3 | H2N | PGL | Effort |
 |---|---|---|---|---|---|
-| Hands Played | Hands | Hands | Hands | N/A | XS |
+| Hands Played | Hands | Hands | Hands | hands | ✅ |
 | Win Rate (BB/100) | BB/100 | BB/100 | Win Rate | BB/100 | ✅ |
-| Win Rate ($/100) | $/100 | Win Rate $ | N/A | N/A | XS |
+| Win Rate ($/100) | $/100 | Win Rate $ | N/A | dollar_per_100 | ✅ |
 | All-in Adj. BB/100 | All-In Adj BB/100 | All-In Adjusted | N/A | BB/100 Adj | ✅ |
-| Amount Won | Amount Won | Winnings | Winnings | N/A | XS |
+| Amount Won | Amount Won | Winnings | Winnings | amount_won | ✅ |
 | Rake | Rake | Rake | N/A | N/A | M (rake must be parsed from hand histories) |
-| Std Deviation | Std Dev | Std Dev | N/A | N/A | S |
+| Std Deviation | Std Dev | Std Dev | N/A | std_dev | ✅ |
 
 ## Preflop — General
 
@@ -32,21 +32,21 @@ Sizing rationale:
 |---|---|---|---|---|---|
 | VPIP | VPIP | VPIP | VPIP | VPIP | ✅ |
 | PFR | PFR | PFR | PFR | PFR | ✅ |
-| RFI (Raise First In) | RFI | RFI | RFI | N/A | S |
-| Limp | LWPC | Limp | Limp | N/A | S |
+| RFI (Raise First In) | RFI | RFI | RFI | rfi | ✅ |
+| Limp | LWPC | Limp | Limp | limp | ✅ |
 | Limp-Call | N/A | Limp-Call | N/A | N/A | M |
 | Limp-Raise | N/A | Limp-Raise | N/A | N/A | M |
-| Call Open Raise | Called PFR | Call Open | Call Open Raise | N/A | S |
+| Call Open Raise | Called PFR | Call Open | Call Open Raise | call_open | ✅ |
 
 ## Preflop — 3Bet / 4Bet
 
 | Metric | PT4 | HM3 | H2N | PGL | Effort |
 |---|---|---|---|---|---|
-| 3Bet Preflop | 3Bet Total | 3Bet | 3-Bet | N/A | S |
-| 4Bet Preflop | 4Bet Total | 4Bet | 4-Bet | N/A | S |
-| Fold to 3Bet | Fold to PF 3Bet | Fold to 3Bet | Fold to 3-Bet | N/A | S |
-| Fold to 4Bet | Fold to PF 4Bet | Fold to 4Bet | N/A | N/A | S |
-| Call 3Bet | Call PF 3Bet | Call 3Bet | N/A | N/A | S |
+| 3Bet Preflop | 3Bet Total | 3Bet | 3-Bet | three_bet | ✅ |
+| 4Bet Preflop | 4Bet Total | 4Bet | 4-Bet | four_bet | ✅ |
+| Fold to 3Bet | Fold to PF 3Bet | Fold to 3Bet | Fold to 3-Bet | fold_to_3bet | ✅ |
+| Fold to 4Bet | Fold to PF 4Bet | Fold to 4Bet | N/A | fold_to_4bet | ✅ |
+| Call 3Bet | Call PF 3Bet | Call 3Bet | N/A | call_3bet | ✅ |
 | Squeeze | Squeeze | Squeeze | N/A | N/A | M (raiser + caller(s) already acted before you) |
 | Fold to Squeeze | Fold to Squeeze | Fold to Squeeze | N/A | N/A | M |
 
@@ -54,9 +54,9 @@ Sizing rationale:
 
 | Metric | PT4 | HM3 | H2N | PGL | Effort |
 |---|---|---|---|---|---|
-| Attempt to Steal | Att To Steal | Steal % | N/A | N/A | S |
-| Fold BB to Steal | Fold BB to Steal | Fold BB to Steal | N/A | N/A | S |
-| Fold SB to Steal | Fold SB to Steal | Fold SB to Steal | N/A | N/A | S |
+| Attempt to Steal | Att To Steal | Steal % | N/A | attempt_steal | ✅ |
+| Fold BB to Steal | Fold BB to Steal | Fold BB to Steal | N/A | fold_bb_to_steal | ✅ |
+| Fold SB to Steal | Fold SB to Steal | Fold SB to Steal | N/A | fold_sb_to_steal | ✅ |
 | BB Defense vs Steal | N/A | BB Defense | N/A | N/A | S |
 | SB Defense vs Steal | N/A | SB Defense | N/A | N/A | S |
 
@@ -64,12 +64,12 @@ Sizing rationale:
 
 | Metric | PT4 | HM3 | H2N | PGL | Effort |
 |---|---|---|---|---|---|
-| Saw Flop | Saw Flop % | Saw Flop | N/A | N/A | XS |
-| Saw Turn | Saw Turn | Saw Turn | N/A | N/A | XS |
-| Saw River | Saw River | Saw River | N/A | N/A | XS |
+| Saw Flop | Saw Flop % | Saw Flop | N/A | saw_flop | ✅ |
+| Saw Turn | Saw Turn | Saw Turn | N/A | saw_turn | ✅ |
+| Saw River | Saw River | Saw River | N/A | saw_river | ✅ |
 | WWSF (Won When Saw Flop) | W$WSF | WWSF | WWSF | N/A | M (requires tracking pot winner per hand) |
-| WTSD (Went to Showdown) | WTSD | WTSD | WTSD | N/A | S |
-| W$SD (Won $ at Showdown) | W$SD | W$SD | W$SD | N/A | S |
+| WTSD (Went to Showdown) | WTSD | WTSD | WTSD | wtsd | ✅ |
+| W$SD (Won $ at Showdown) | W$SD | W$SD | W$SD | wsd | ✅ |
 
 ## Postflop — Aggression
 
@@ -130,22 +130,21 @@ Sizing rationale:
 
 ## PGL Coverage & Priorities
 
-Currently implemented: **VPIP, PFR, BB/100, BB/100 All-in Adjusted** (4 of ~60+ industry metrics).
+Currently implemented: **VPIP, PFR, BB/100, BB/100 All-in Adjusted, Hands Played, Amount Won, $/100, Saw Flop/Turn/River, RFI, Limp, Call Open, 3Bet, 4Bet, Fold to 3Bet, Fold to 4Bet, Call 3Bet, Attempt Steal, Fold BB/SB to Steal, WTSD, W$SD, Std Dev** (22 of ~60+ industry metrics).
 
 Recommended implementation order (value vs effort):
 
 | Priority | Metric | Effort | Notes |
 |---|---|---|---|
-| 1 | 3Bet / Fold to 3Bet | S | Universally tracked, core profiling stat |
-| 2 | Attempt to Steal / Fold BB & SB to Steal | S | High-value, simple spot detection |
-| 3 | RFI | S | Standard open-raise metric by position |
-| 4 | WTSD / W$SD / WWSF | S–M | Showdown tendency triad |
-| 5 | AF / AFq (overall + by street) | M | Core aggression metrics |
-| 6 | Flop/Turn/River C-Bet + Fold to C-Bet | M | Most-used postflop stats; need PF aggressor tracking |
-| 7 | Check-Raise / Donk Bet | M | Common postflop reads |
-| 8 | 4Bet / Squeeze | S–M | Complete the preflop betting tree |
-| 9 | Position breakdowns (VPIP/PFR/3Bet by pos) | M | Unlocks position-aware profiling |
-| 10 | Float / Probe | L | Advanced postflop; defer until core stats are done |
+| ✅ | XS + S metrics | — | Done |
+| 1 | AF / AFq (overall + by street) | M | Core aggression metrics |
+| 2 | Flop/Turn/River C-Bet + Fold to C-Bet | M | Most-used postflop stats; need PF aggressor tracking |
+| 3 | WWSF | M | Completes the showdown triad |
+| 4 | Check-Raise / Donk Bet | M | Common postflop reads |
+| 5 | BB/SB Defense vs Steal | S | Complete the steal response picture |
+| 6 | Squeeze / Fold to Squeeze | M | Complete the preflop betting tree |
+| 7 | Position breakdowns (VPIP/PFR/3Bet by pos) | M | Unlocks position-aware profiling |
+| 8 | Float / Probe | L | Advanced postflop; defer until core stats are done |
 
 ## Sources
 
