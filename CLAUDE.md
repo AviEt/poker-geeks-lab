@@ -21,3 +21,4 @@
 - [Architecture & module structure](.claude/docs/architecture.md)
 - [Hand history file formats](.claude/docs/hand-history-files.md)
 - [Design system details](.claude/docs/design-system.md)
+- [PT4 ground truth & DB access](.claude/docs/pt4.md)
