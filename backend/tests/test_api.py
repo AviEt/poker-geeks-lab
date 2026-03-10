@@ -139,6 +139,57 @@ class TestPlayerStats:
     def test_unknown_player_zero_hands(self, populated_client):
         assert populated_client.get("/NoSuchPlayer/stats").json()["hands"] == 0
 
+    def test_has_new_xs_fields(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        assert {"amount_won", "dollar_per_100", "saw_flop", "saw_turn", "saw_river"} <= data.keys()
+
+    def test_saw_flop_in_range(self, populated_client):
+        assert 0 <= populated_client.get("/Hero/stats").json()["saw_flop"] <= 100
+
+    def test_saw_turn_in_range(self, populated_client):
+        assert 0 <= populated_client.get("/Hero/stats").json()["saw_turn"] <= 100
+
+    def test_saw_river_in_range(self, populated_client):
+        assert 0 <= populated_client.get("/Hero/stats").json()["saw_river"] <= 100
+
+    def test_saw_flop_gte_saw_turn(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        assert data["saw_flop"] >= data["saw_turn"]
+
+    def test_saw_turn_gte_saw_river(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        assert data["saw_turn"] >= data["saw_river"]
+
+    def test_amount_won_is_numeric(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        assert isinstance(data["amount_won"], (int, float))
+
+    def test_dollar_per_100_is_numeric(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        assert isinstance(data["dollar_per_100"], (int, float))
+
+    def test_has_s_effort_fields(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        expected = {
+            "rfi", "limp", "call_open", "three_bet", "four_bet",
+            "fold_to_3bet", "fold_to_4bet", "call_3bet",
+            "attempt_steal", "fold_bb_to_steal", "fold_sb_to_steal",
+            "wtsd", "wsd", "std_dev",
+        }
+        assert expected <= data.keys()
+
+    def test_s_effort_percentages_in_range(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        for key in ("rfi", "three_bet", "attempt_steal", "wtsd", "wsd"):
+            assert 0 <= data[key] <= 100, f"{key} out of range"
+
+    def test_std_dev_non_negative(self, populated_client):
+        assert populated_client.get("/Hero/stats").json()["std_dev"] >= 0
+
+    def test_wtsd_lte_saw_flop(self, populated_client):
+        data = populated_client.get("/Hero/stats").json()
+        assert data["wtsd"] <= data["saw_flop"]
+
 
 # ---------------------------------------------------------------------------
 # GET /{player}/hands
